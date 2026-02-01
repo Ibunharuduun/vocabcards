@@ -135,8 +135,12 @@ async function loadSet(csvFile) {
   const parsed = Papa.parse(text);
 
   cards = parsed.data
-  .filter(row => row.length >= 2)
-  .map(row => [row[0], row[1]]);
+    .filter(row => row.length >= 2)
+    .map(row => [row[0], row[1]]);
+
+  index = 0;
+  show();
+}
 
   index = 0;
   show();
