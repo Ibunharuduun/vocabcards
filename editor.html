@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>単語帳</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body { font-family: sans-serif; margin:20px; }
@@ -20,6 +21,26 @@ td input { width:100%; }
   margin:20px 0;
   cursor:pointer;
   white-space: pre-line;
+}
+/* スマホ用 */
+@media (max-width: 700px) {
+
+  .card {
+    font-size: 18px;
+    padding: 20px;
+  }
+
+  button {
+    font-size: 18px;
+    padding: 12px;
+    width: 100%;
+    margin: 6px 0;
+  }
+
+  textarea {
+    font-size: 16px;
+  }
+
 }
 </style>
 </head>
