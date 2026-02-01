@@ -132,12 +132,11 @@ async function loadSet(csvFile) {
   const res = await fetch(csvFile);
   const text = await res.text();
 
-  const lines = text.trim().split(/\r?\n/);
+  const parsed = Papa.parse(text);
 
-  cards = lines.map(line => {
-    const cols = line.split(",");
-    return [cols[0], cols[1]];
-  });
+  cards = parsed.data
+  .filter(row => row.length >= 2)
+  .map(row => [row[0], row[1]]);
 
   index = 0;
   show();
