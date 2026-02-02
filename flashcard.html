@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <meta charset="UTF-8">
 <title>単語カード</title>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
 body {
@@ -13,7 +14,6 @@ body {
   height: 100vh;
 }
 
-/* 左メニュー */
 #menu {
   width: 220px;
   background: #222;
@@ -32,7 +32,6 @@ body {
   background: #444;
 }
 
-/* 右カード領域 */
 #main {
   flex: 1;
   display: flex;
@@ -103,9 +102,9 @@ button {
 <body>
 
 <div id="menu">
-  <div class="menu-item" onclick="loadSet('eng.csv')">英単語</div>
-  <div class="menu-item" onclick="loadSet('history.csv')">世界史</div>
-  <div class="menu-item" onclick="loadSet('chem.csv')">化学</div>
+  <div class="menu-item" onclick="loadSet(0)">英単語</div>
+  <div class="menu-item" onclick="loadSet(807161786)">古文</div>
+  <div class="menu-item" onclick="loadSet(19839338)">漢文</div>
 </div>
 
 <div id="main">
@@ -125,29 +124,43 @@ button {
 </div>
 
 <script>
+
+/* ====== ここだけ変更 ====== */
+const SPREADSHEET_ID = "2PACX-1vQX0uglNZ4m1BrWviI3Bd6xhaahyTlNGOBkNJR5OhErjH6dvBr_k8us_Il-Sp5kmGzFCgFH0frY47Yq/pubhtml";
+/* =========================== */
+
 let cards = [];
 let index = 0;
 
-async function loadSet(csvFile) {
-  const res = await fetch(csvFile);
-  const text = await res.text();
+const proxy = "https://api.allorigins.win/raw?url=";
 
-  const parsed = Papa.parse(text);
-
-  cards = parsed.data
-    .filter(row => row.length >= 2)
-    .map(row => [row[0], row[1]]);
-
-  index = 0;
-  show();
+/* gidからCSV URLを生成 */
+function buildCsvUrl(gid) {
+  return `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${gid}`;
 }
 
-  index = 0;
-  show();
+async function loadSet(gid) {
+  try {
+    const csvUrl = buildCsvUrl(gid);
+    const res = await fetch(proxy + encodeURIComponent(csvUrl));
+    const text = await res.text();
+
+    const parsed = Papa.parse(text);
+
+    cards = parsed.data
+      .filter(row => row.length >= 2 && row[0] && row[1])
+      .map(row => [row[0], row[1]]);
+
+    index = 0;
+    show();
+  } catch (err) {
+    alert("読み込みエラー：" + err);
+  }
 }
 
 function show() {
   if (!cards.length) return;
+
   document.getElementById("front").textContent = cards[index][0];
   document.getElementById("back").textContent = cards[index][1];
   document.getElementById("card").classList.remove("flipped");
@@ -167,10 +180,10 @@ document.getElementById("card").onclick = () => {
   document.getElementById("card").classList.toggle("flipped");
 };
 
-/* 初期ロード */
-loadSet("eng.csv");
+/* 初期ロード（gid=0） */
+loadSet(0);
+
 </script>
 
 </body>
 </html>
-
