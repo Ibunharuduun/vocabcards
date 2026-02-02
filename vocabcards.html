@@ -116,7 +116,6 @@ button {
 .menu-children .menu-item {
   padding-left: 24px;
 }
-
 </style>
 </head>
 
@@ -132,6 +131,7 @@ button {
       <div class="menu-item" onclick="loadSet(2)">難語</div>
     </div>
   </div>
+
   <div class="menu-group">
     <div class="menu-parent" onclick="toggleMenu(this)">▸古文</div>
     <div class="menu-children">
@@ -139,10 +139,12 @@ button {
       <div class="menu-item" onclick="loadSet(4)">文法</div>
     </div>
   </div>
+
 </div>
 
 <div id="main">
   <div id="app">
+
     <div id="card" class="card">
       <div class="card-inner">
         <div class="face front" id="front"></div>
@@ -154,6 +156,13 @@ button {
       <button onclick="prev()">←</button>
       <button onclick="next()">→</button>
     </div>
+
+    <!-- スライダー -->
+    <input type="range" id="cardSlider" min="0" max="0" value="0" style="width:100%; margin-top:16px;">
+
+    <!-- 枚数表示 -->
+    <div id="cardCount" style="margin-top:8px; font-size:14px;"></div>
+
   </div>
 </div>
 
@@ -169,6 +178,9 @@ const CSV_FILES = {
 
 let cards = [];
 let index = 0;
+
+const slider = document.getElementById("cardSlider");
+const counter = document.getElementById("cardCount");
 
 function toggleMenu(el) {
   const box = el.nextElementSibling;
@@ -191,6 +203,10 @@ async function loadSet(id) {
       .map(r => [r[0], r[1]]);
 
     index = 0;
+
+    slider.max = Math.max(cards.length - 1, 0);
+    slider.value = 0;
+
     show();
 
   } catch (err) {
@@ -209,6 +225,9 @@ function show() {
   front.textContent = cards[index][0];
   back.textContent  = cards[index][1];
   card.classList.remove("flipped");
+
+  slider.value = index;
+  counter.textContent = (index + 1) + " / " + cards.length;
 }
 
 function next() {
@@ -221,6 +240,11 @@ function prev() {
   show();
 }
 
+slider.addEventListener("input", () => {
+  index = Number(slider.value);
+  show();
+});
+
 document.getElementById("card").onclick = () => {
   document.getElementById("card").classList.toggle("flipped");
 };
@@ -228,7 +252,6 @@ document.getElementById("card").onclick = () => {
 loadSet(0);
 
 </script>
-
 
 </body>
 </html>
