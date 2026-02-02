@@ -79,4 +79,107 @@ body {
   font-size: 28px;
   padding: 20px;
   box-sizing: border-box;
-  white-space: pre-l
+  white-space: pre-line;
+}
+
+.back {
+  transform: rotateY(180deg);
+  background: #eef3ff;
+}
+
+.controls {
+  margin-top: 20px;
+}
+
+button {
+  font-size: 18px;
+  padding: 10px 20px;
+  margin: 0 10px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="menu">
+  <div class="menu-item" onclick="loadSet(0)">英単語</div>
+  <div class="menu-item" onclick="loadSet(1)">古文</div>
+  <div class="menu-item" onclick="loadSet(2)">漢文</div>
+</div>
+
+<div id="main">
+  <div id="app">
+    <div id="card" class="card">
+      <div class="card-inner">
+        <div class="face front" id="front"></div>
+        <div class="face back" id="back"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button onclick="prev()">←</button>
+      <button onclick="next()">→</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+/* ===== GitHub CSV のURLをここに書く ===== */
+const CSV_FILES = {
+  0: "https://ibunharuduun.github.io/vocabcards/eng1.csv",
+  1: "https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/kobun.csv",
+  2: "https://raw.githubusercontent.com/ユーザー名/リポジトリ名/main/kanbun.csv"
+};
+/* ======================================= */
+
+let cards = [];
+let index = 0;
+
+async function loadSet(id) {
+  try {
+    const res = await fetch(CSV_FILES[id]);
+    const text = await res.text();
+
+    const parsed = Papa.parse(text);
+
+    cards = parsed.data
+      .filter(row => row.length >= 2 && row[0] && row[1])
+      .map(row => [row[0], row[1]]);
+
+    index = 0;
+    show();
+
+  } catch (err) {
+    alert("読み込みエラー：" + err);
+  }
+}
+
+function show() {
+  if (!cards.length) return;
+
+  document.getElementById("front").textContent = cards[index][0];
+  document.getElementById("back").textContent = cards[index][1];
+  document.getElementById("card").classList.remove("flipped");
+}
+
+function next() {
+  if (index < cards.length - 1) index++;
+  show();
+}
+
+function prev() {
+  if (index > 0) index--;
+  show();
+}
+
+document.getElementById("card").onclick = () => {
+  document.getElementById("card").classList.toggle("flipped");
+};
+
+loadSet(0);
+
+</script>
+
+</body>
+</html>
