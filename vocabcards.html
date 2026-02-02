@@ -215,11 +215,16 @@ function next() {
 
 function toggleMenu(el) {
   const box = el.nextElementSibling;
-  const open = box.style.display === "block";
+  if (!box) {
+    console.log("子メニューが見つからない");
+    return;
+  }
 
-  box.style.display = open ? "none" : "block";
-  el.textContent = (open ? "▸" : "▾") + el.textContent.slice(1);
+  const isOpen = box.style.display === "block";
+  box.style.display = isOpen ? "none" : "block";
+  el.textContent = (isOpen ? "▸" : "▾") + el.textContent.slice(1);
 }
+
 
 function prev() {
   if (index > 0) index--;
