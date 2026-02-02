@@ -1,74 +1,28 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<title>単語帳</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<style>
-body { font-family: sans-serif; margin:20px; }
-
-#editor { display:none; }
-
-table { width:100%; }
-td input { width:100%; }
-
-.card {
-  border:1px solid #aaa;
-  padding:40px;
-  font-size:28px;
-  text-align:center;
-  margin:20px 0;
-  cursor:pointer;
-  white-space: pre-line;
-}
-/* スマホ用 */
-@media (max-width: 700px) {
-
-  .card {
-    font-size: 18px;
-    padding: 20px;
-  }
-
-  button {
-    font-size: 18px;
-    padding: 12px;
-    width: 100%;
-    margin: 6px 0;
-  }
-
-  textarea {
-    font-size: 16px;
-  }
-
-}
-</style>
-</head>
-
-<body>
-
-<button onclick="toggleMode()">編集モード切替</button>
-
-<div id="viewer">
-  <div id="card" class="card"></div>
-  <button onclick="prev()">←</button>
-  <button onclick="next()">→</button>
-</div>
-
-<div id="editor">
-  <table id="table"></table>
-  <button onclick="addRow()">行追加</button>
-  <button onclick="download()">保存(JSON)</button>
-</div>
-
 <script>
 let cards = [];
 let index = 0;
 
+// ★ここを自分のスプレッドシートCSV公開URLに変更
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/XXXX/export?format=csv";
+
 async function load() {
-  const res = await fetch("cards.json");
-  cards = await res.json();
+  const res = await fetch(SHEET_URL);
+  const text = await res.text();
+  cards = csvToCards(text);
   show();
+}
+
+// CSV → [{front,back}] に変換
+function csvToCards(text){
+  const lines = text.trim().split("\n");
+  const rows = lines.map(l => l.split(","));
+  
+  const header = rows.shift(); // front,back
+  
+  return rows.map(r => ({
+    front: r[0] ?? "",
+    back: r[1] ?? ""
+  }));
 }
 
 function show() {
@@ -112,6 +66,7 @@ function addRow(){
   buildEditor();
 }
 
+// ★保存はローカルJSONのまま（Sheetsへ直接書き戻しはAPIが必要）
 function download(){
   const blob = new Blob(
     [JSON.stringify(cards,null,2)],
@@ -125,6 +80,3 @@ function download(){
 
 load();
 </script>
-
-</body>
-</html>
