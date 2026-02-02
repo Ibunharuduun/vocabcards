@@ -93,14 +93,17 @@ body {
   background: white;
   border-radius: 16px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+
   display: flex;
   justify-content: center;
+  align-items: center;      /* ← 中央に戻す */
+
   font-size: 28px;
   padding: 20px;
   box-sizing: border-box;
-  white-space: pre-line;    
-}
 
+  white-space: pre-line;
+  overflow-y: auto;         /
 
 .back {
   transform: rotateY(180deg);
