@@ -32,6 +32,26 @@ body {
   background: #444;
 }
 
+.menu-parent {
+  padding: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #444;
+  background: #2a2a2a;
+}
+
+.menu-parent:hover {
+  background: #444;
+}
+
+.menu-children {
+  display: none;
+  background: #111;
+}
+
+.menu-children .menu-item {
+  padding-left: 24px;
+}
+
 #main {
   flex: 1;
   display: flex;
@@ -96,26 +116,6 @@ button {
   padding: 10px 20px;
   margin: 0 10px;
 }
-
-.menu-parent {
-  padding: 12px;
-  cursor: pointer;
-  border-bottom: 1px solid #444;
-  background: #2a2a2a;
-}
-
-.menu-parent:hover {
-  background: #444;
-}
-
-.menu-children {
-  display: none;
-  background: #111;
-}
-
-.menu-children .menu-item {
-  padding-left: 24px;
-}
 </style>
 </head>
 
@@ -158,7 +158,8 @@ button {
     </div>
 
     <!-- スライダー -->
-    <input type="range" id="cardSlider" min="0" max="0" value="0" style="width:100%; margin-top:16px;">
+    <input type="range" id="cardSlider" min="0" max="0" value="0"
+           style="width:100%; margin-top:16px;">
 
     <!-- 枚数表示 -->
     <div id="cardCount" style="margin-top:8px; font-size:14px;"></div>
@@ -179,7 +180,7 @@ const CSV_FILES = {
 let cards = [];
 let index = 0;
 
-const slider = document.getElementById("cardSlider");
+const slider  = document.getElementById("cardSlider");
 const counter = document.getElementById("cardCount");
 
 function toggleMenu(el) {
@@ -220,7 +221,6 @@ function show() {
   const front = document.getElementById("front");
   const back  = document.getElementById("back");
   const card  = document.getElementById("card");
-  if (!front || !back || !card) return;
 
   front.textContent = cards[index][0];
   back.textContent  = cards[index][1];
