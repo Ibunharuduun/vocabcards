@@ -125,6 +125,52 @@ button {
   padding: 10px 20px;
   margin: 0 10px;
 }
+
+/* ===== スマホ対応 ===== */
+@media (max-width: 700px) {
+
+  body {
+    flex-direction: column;
+  }
+
+  #menu {
+    width: 100%;
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .menu-group {
+    min-width: 160px;
+  }
+
+  #main {
+    padding: 10px;
+  }
+
+  #app {
+    width: 100%;
+    max-width: none;
+  }
+
+  .card {
+    height: 45vh;   /* 画面高さ基準 */
+  }
+
+  .face-content {
+    font-size: 20px;
+  }
+
+  button {
+    font-size: 20px;
+    padding: 14px 18px;
+  }
+
+  input[type="range"] {
+    height: 36px;
+  }
+
+}
 </style>
 </head>
 
