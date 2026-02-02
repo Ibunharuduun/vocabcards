@@ -206,6 +206,22 @@ input[type="range"]::-moz-range-thumb {
 input[type="range"]::-moz-range-track {
   height: 10px;
 }
+/* スマホ用：スライダー拡大＋位置補正 */
+input[type="range"] {
+  height: 36px;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 12px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  margin-top: -12px;   /* ←ズレ補正の本体 */
+  -webkit-appearance: none;
+}
 </style>
 </head>
 
