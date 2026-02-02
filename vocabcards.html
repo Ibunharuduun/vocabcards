@@ -95,20 +95,22 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.15);
   padding: 20px;
   box-sizing: border-box;
-  overflow-y: auto;   /* スクロール担当 */
+
+  overflow-y: auto;   /* ← スクロール担当 */
 }
 
 .face-content {
-  min-height: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
+
+  min-height: 100%;      /* 中央配置のための最低高さ */
   text-align: center;
   font-size: 28px;
   white-space: pre-line;
 }
 
-  
+
 .back {
   transform: rotateY(180deg);
   background: #eef3ff;
