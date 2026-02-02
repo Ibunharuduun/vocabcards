@@ -171,6 +171,40 @@ button {
     height: 36px;
   }
 
+
+}
+
+/* スライダー本体の高さ */
+input[type="range"] {
+  height: 40px;
+}
+
+/* ===== Chrome / Edge / Safari ===== */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #333;
+  cursor: pointer;
+}
+
+/* レール（溝） */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 10px;
+}
+
+/* ===== Firefox ===== */
+input[type="range"]::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #333;
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 10px;
 }
 </style>
 </head>
