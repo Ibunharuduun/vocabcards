@@ -132,7 +132,6 @@ button {
       <div class="menu-item" onclick="loadSet(2)">難語</div>
     </div>
   </div>
-
   <div class="menu-group">
     <div class="menu-parent" onclick="toggleMenu(this)">▸古文</div>
     <div class="menu-children">
@@ -140,7 +139,22 @@ button {
       <div class="menu-item" onclick="loadSet(4)">文法</div>
     </div>
   </div>
+</div>
 
+<div id="main">
+  <div id="app">
+    <div id="card" class="card">
+      <div class="card-inner">
+        <div class="face front" id="front"></div>
+        <div class="face back" id="back"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button onclick="prev()">←</button>
+      <button onclick="next()">→</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -151,7 +165,7 @@ const CSV_FILES = {
   1: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/refs/heads/main/eng1.csv",
   2: ""https://raw.githubusercontent.com/Ibunharuduun/vocabcards/refs/heads/main/eng1.csv",
   3: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/refs/heads/main/eng1.csv",
-  4: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/refs/heads/main/eng1.csv",
+  4: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/refs/heads/main/eng1.csv"
 };
 /* ======================================= */
 
@@ -180,9 +194,18 @@ async function loadSet(id) {
 function show() {
   if (!cards.length) return;
 
-  document.getElementById("front").textContent = cards[index][0];
-  document.getElementById("back").textContent = cards[index][1];
-  document.getElementById("card").classList.remove("flipped");
+  const front = document.getElementById("front");
+  const back  = document.getElementById("back");
+  const card  = document.getElementById("card");
+
+  if (!front || !back || !card) {
+    console.error("カード要素が見つからない");
+    return;
+  }
+
+  front.textContent = cards[index][0];
+  back.textContent  = cards[index][1];
+  card.classList.remove("flipped");
 }
 
 function next() {
