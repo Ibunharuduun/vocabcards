@@ -159,18 +159,25 @@ button {
 
 <script>
 
-/* ===== GitHub CSV のURLをここに書く ===== */
 const CSV_FILES = {
-  0: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/refs/heads/main/eng1.csv",
-  1: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/refs/heads/main/eng1.csv",
-  2: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/refs/heads/main/eng1.csv",
-  3: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/refs/heads/main/eng1.csv",
-  4: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/refs/heads/main/eng1.csv"
+  0: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/main/eng1.csv",
+  1: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/main/eng1.csv",
+  2: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/main/eng1.csv",
+  3: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/main/eng1.csv",
+  4: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/main/eng1.csv"
 };
-/* ======================================= */
 
 let cards = [];
 let index = 0;
+
+function toggleMenu(el) {
+  const box = el.nextElementSibling;
+  if (!box) return;
+
+  const isOpen = box.style.display === "block";
+  box.style.display = isOpen ? "none" : "block";
+  el.textContent = (isOpen ? "▸" : "▾") + el.textContent.slice(1);
+}
 
 async function loadSet(id) {
   try {
@@ -180,8 +187,8 @@ async function loadSet(id) {
     const parsed = Papa.parse(text);
 
     cards = parsed.data
-      .filter(row => row.length >= 2 && row[0] && row[1])
-      .map(row => [row[0], row[1]]);
+      .filter(r => r.length >= 2 && r[0] && r[1])
+      .map(r => [r[0], r[1]]);
 
     index = 0;
     show();
@@ -197,11 +204,7 @@ function show() {
   const front = document.getElementById("front");
   const back  = document.getElementById("back");
   const card  = document.getElementById("card");
-
-  if (!front || !back || !card) {
-    console.error("カード要素が見つからない");
-    return;
-  }
+  if (!front || !back || !card) return;
 
   front.textContent = cards[index][0];
   back.textContent  = cards[index][1];
@@ -212,19 +215,6 @@ function next() {
   if (index < cards.length - 1) index++;
   show();
 }
-
-function toggleMenu(el) {
-  const box = el.nextElementSibling;
-  if (!box) {
-    console.log("子メニューが見つからない");
-    return;
-  }
-
-  const isOpen = box.style.display === "block";
-  box.style.display = isOpen ? "none" : "block";
-  el.textContent = (isOpen ? "▸" : "▾") + el.textContent.slice(1);
-}
-
 
 function prev() {
   if (index > 0) index--;
@@ -238,6 +228,7 @@ document.getElementById("card").onclick = () => {
 loadSet(0);
 
 </script>
+
 
 </body>
 </html>
