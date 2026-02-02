@@ -96,31 +96,51 @@ button {
   padding: 10px 20px;
   margin: 0 10px;
 }
+
+.menu-parent {
+  padding: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #444;
+  background: #2a2a2a;
+}
+
+.menu-parent:hover {
+  background: #444;
+}
+
+.menu-children {
+  display: none;
+  background: #111;
+}
+
+.menu-children .menu-item {
+  padding-left: 24px;
+}
+
 </style>
 </head>
 
 <body>
 
 <div id="menu">
-  <div class="menu-item" onclick="loadSet(0)">英単語</div>
-  <div class="menu-item" onclick="loadSet(1)">古文</div>
-  <div class="menu-item" onclick="loadSet(2)">漢文</div>
-</div>
 
-<div id="main">
-  <div id="app">
-    <div id="card" class="card">
-      <div class="card-inner">
-        <div class="face front" id="front"></div>
-        <div class="face back" id="back"></div>
-      </div>
-    </div>
-
-    <div class="controls">
-      <button onclick="prev()">←</button>
-      <button onclick="next()">→</button>
+  <div class="menu-group">
+    <div class="menu-parent" onclick="toggleMenu(this)">▸英語</div>
+    <div class="menu-children">
+      <div class="menu-item" onclick="loadSet(0)">和訳</div>
+      <div class="menu-item" onclick="loadSet(1)">英訳</div>
+      <div class="menu-item" onclick="loadSet(2)">難語</div>
     </div>
   </div>
+
+  <div class="menu-group">
+    <div class="menu-parent" onclick="toggleMenu(this)">▸古文</div>
+    <div class="menu-children">
+      <div class="menu-item" onclick="loadSet(3)">単語</div>
+      <div class="menu-item" onclick="loadSet(4)">文法</div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -166,6 +186,14 @@ function show() {
 function next() {
   if (index < cards.length - 1) index++;
   show();
+}
+
+function toggleMenu(el) {
+  const box = el.nextElementSibling;
+  const open = box.style.display === "block";
+
+  box.style.display = open ? "none" : "block";
+  el.textContent = (open ? "▸" : "▾") + el.textContent.slice(1);
 }
 
 function prev() {
