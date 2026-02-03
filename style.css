@@ -114,7 +114,9 @@ body {
 button {
   font-size: 18px;
   padding: 10px 20px;
-  margin: 10px 10px 0 10px;
+  margin:　0 10px;
+  position: relative;
+  top: 10px;
 }
 
 /* ===== スマホ対応 ===== */
