@@ -4,253 +4,32 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>単語カード</title>
-
+<link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
-<style>
-body {
-  margin: 0;
-  font-family: sans-serif;
-  display: flex;
-  height: 100vh;
-}
-
-#menu {
-  width: 220px;
-  background: #222;
-  color: white;
-  padding: 10px;
-  box-sizing: border-box;
-}
-
-.menu-item {
-  padding: 12px;
-  cursor: pointer;
-  border-bottom: 1px solid #444;
-}
-
-.menu-item:hover {
-  background: #444;
-}
-
-.menu-parent {
-  padding: 12px;
-  cursor: pointer;
-  border-bottom: 1px solid #444;
-  background: #2a2a2a;
-}
-
-.menu-parent:hover {
-  background: #444;
-}
-
-.menu-children {
-  display: none;
-  background: #111;
-}
-
-.menu-children .menu-item {
-  padding-left: 24px;
-}
-
-#main {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #f5f5f5;
-}
-
-#app {
-  width: 90%;
-  max-width: 600px;
-  text-align: center;
-}
-
-.card {
-  width: 100%;
-  height: 300px;
-  perspective: 1000px;
-  cursor: pointer;
-}
-
-.card-inner {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  transition: transform 0.6s;
-  transform-style: preserve-3d;
-}
-
-.card.flipped .card-inner {
-  transform: rotateY(180deg);
-}
-
-.face {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-  padding: 20px;
-  box-sizing: border-box;
-
-  overflow-y: auto;   /* ← スクロール担当 */
-}
-
-.face-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  min-height: 100%;      /* 中央配置のための最低高さ */
-  text-align: center;
-  font-size: 28px;
-  white-space: pre-line;
-}
-
-
-.back {
-  transform: rotateY(180deg);
-  background: #eef3ff;
-}
-
-.controls {
-  margin-top: 20px;
-}
-
-button {
-  font-size: 18px;
-  padding: 10px 20px;
-  margin: 0 10px;
-}
-
-/* ===== スマホ対応 ===== */
-@media (max-width: 700px) {
-
-  body {
-    flex-direction: column;
-  }
-
-  #menu {
-    width: 100%;
-    display: flex;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-
-  .menu-group {
-    min-width: 160px;
-  }
-
-  #main {
-    padding: 10px;
-  }
-
-  #app {
-    width: 100%;
-    max-width: none;
-  }
-
-  .card {
-    height: 45vh;   /* 画面高さ基準 */
-  }
-
-  .face-content {
-    font-size: 20px;
-  }
-
-  button {
-    font-size: 20px;
-    padding: 14px 18px;
-  }
-
-  input[type="range"] {
-    height: 36px;
-  }
-
-
-}
-
-/* スライダー本体の高さ */
-input[type="range"] {
-  height: 40px;
-}
-
-/* ===== Chrome / Edge / Safari ===== */
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #333;
-  cursor: pointer;
-}
-
-/* レール（溝） */
-input[type="range"]::-webkit-slider-runnable-track {
-  height: 10px;
-}
-
-/* ===== Firefox ===== */
-input[type="range"]::-moz-range-thumb {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #333;
-  cursor: pointer;
-}
-
-input[type="range"]::-moz-range-track {
-  height: 10px;
-}
-/* スマホ用：スライダー拡大＋位置補正 */
-input[type="range"] {
-  height: 36px;
-}
-
-input[type="range"]::-webkit-slider-runnable-track {
-  height: 12px;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  margin-top: -12px;   /* ←ズレ補正の本体 */
-  -webkit-appearance: none;
-}
-</style>
 </head>
-
 <body>
 
 <div id="menu">
-
   <div class="menu-group">
-    <div class="menu-parent" onclick="toggleMenu(this)">▸英語</div>
+    <div class="menu-parent">▸英語</div>
     <div class="menu-children">
-      <div class="menu-item" onclick="loadSet(0)">和訳</div>
-      <div class="menu-item" onclick="loadSet(1)">英訳</div>
-      <div class="menu-item" onclick="loadSet(2)">難語</div>
+      <div class="menu-item" data-set="0">和訳</div>
+      <div class="menu-item" data-set="1">英訳</div>
+      <div class="menu-item" data-set="2">難語</div>
     </div>
   </div>
 
   <div class="menu-group">
-    <div class="menu-parent" onclick="toggleMenu(this)">▸古典</div>
+    <div class="menu-parent">▸古典</div>
     <div class="menu-children">
-      <div class="menu-item" onclick="loadSet(3)">古文</div>
-      <div class="menu-item" onclick="loadSet(4)">漢文</div>
+      <div class="menu-item" data-set="3">古文</div>
+      <div class="menu-item" data-set="4">漢文</div>
     </div>
   </div>
-
 </div>
 
 <div id="main">
   <div id="app">
-
     <div id="card" class="card">
       <div class="card-inner">
         <div class="face front"><div class="face-content" id="front"></div></div>
@@ -259,105 +38,15 @@ input[type="range"]::-webkit-slider-thumb {
     </div>
 
     <div class="controls">
-      <button onclick="prev()">←</button>
-      <button onclick="next()">→</button>
+      <button id="prevBtn">←</button>
+      <button id="nextBtn">→</button>
     </div>
 
-    <!-- スライダー -->
-    <input type="range" id="cardSlider" min="0" max="0" value="0"
-           style="width:100%; margin-top:16px;">
-
-    <!-- 枚数表示 -->
-    <div id="cardCount" style="margin-top:8px; font-size:14px;"></div>
-
+    <input type="range" id="cardSlider" min="0" max="0" value="0">
+    <div id="cardCount"></div>
   </div>
 </div>
 
-<script>
-
-const CSV_FILES = {
-  0: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/main/eng1.csv",
-  1: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/main/eng2.csv",
-  2: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/main/eng3.csv",
-  3: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/main/old1.csv",
-  4: "https://raw.githubusercontent.com/Ibunharuduun/vocabcards/main/old2.csv"
-};
-
-let cards = [];
-let index = 0;
-
-const slider  = document.getElementById("cardSlider");
-const counter = document.getElementById("cardCount");
-
-function toggleMenu(el) {
-  const box = el.nextElementSibling;
-  if (!box) return;
-
-  const isOpen = box.style.display === "block";
-  box.style.display = isOpen ? "none" : "block";
-  el.textContent = (isOpen ? "▸" : "▾") + el.textContent.slice(1);
-}
-
-async function loadSet(id) {
-  try {
-    const res = await fetch(CSV_FILES[id]);
-    const text = await res.text();
-
-    const parsed = Papa.parse(text);
-
-    cards = parsed.data
-      .filter(r => r.length >= 2 && r[0] && r[1])
-      .map(r => [r[0], r[1]]);
-
-    index = 0;
-
-    slider.max = Math.max(cards.length - 1, 0);
-    slider.value = 0;
-
-    show();
-
-  } catch (err) {
-    alert("読み込みエラー：" + err);
-  }
-}
-
-function show() {
-  if (!cards.length) return;
-
-  const front = document.getElementById("front");
-  const back  = document.getElementById("back");
-  const card  = document.getElementById("card");
-
-  front.textContent = cards[index][0];
-  back.textContent  = cards[index][1];
-  card.classList.remove("flipped");
-
-  slider.value = index;
-  counter.textContent = (index + 1) + " / " + cards.length;
-}
-
-function next() {
-  if (index < cards.length - 1) index++;
-  show();
-}
-
-function prev() {
-  if (index > 0) index--;
-  show();
-}
-
-slider.addEventListener("input", () => {
-  index = Number(slider.value);
-  show();
-});
-
-document.getElementById("card").onclick = () => {
-  document.getElementById("card").classList.toggle("flipped");
-};
-
-loadSet(0);
-
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
