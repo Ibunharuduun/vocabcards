@@ -1,4 +1,3 @@
-/* ===== 全体レイアウト ===== */
 body {
   margin: 0;
   font-family: sans-serif;
@@ -14,14 +13,25 @@ body {
   box-sizing: border-box;
 }
 
-.menu-item, .menu-parent {
+.menu-item {
   padding: 12px;
   cursor: pointer;
   border-bottom: 1px solid #444;
 }
 
+.menu-item:hover {
+  background: #444;
+}
+
 .menu-parent {
+  padding: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #444;
   background: #2a2a2a;
+}
+
+.menu-parent:hover {
+  background: #444;
 }
 
 .menu-children {
@@ -33,7 +43,6 @@ body {
   padding-left: 24px;
 }
 
-/* ===== メイン表示 ===== */
 #main {
   flex: 1;
   display: flex;
@@ -48,7 +57,6 @@ body {
   text-align: center;
 }
 
-/* ===== カード ===== */
 .card {
   width: 100%;
   height: 300px;
@@ -78,25 +86,27 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.15);
   padding: 20px;
   box-sizing: border-box;
-  overflow-y: auto;
-}
 
-.back {
-  transform: rotateY(180deg);
-  background: #eef3ff;
+  overflow-y: auto;   /* ← スクロール担当 */
 }
 
 .face-content {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100%;
+
+  min-height: 100%;      /* 中央配置のための最低高さ */
   text-align: center;
   font-size: 28px;
   white-space: pre-line;
 }
 
-/* ===== コントロール ===== */
+
+.back {
+  transform: rotateY(180deg);
+  background: #eef3ff;
+}
+
 .controls {
   margin-top: 20px;
 }
@@ -107,79 +117,9 @@ button {
   margin: 0 10px;
 }
 
-/* ===== スライダー ===== */
-input[type="range"] {
-  width: 100%;
-  margin-top: 16px;
-  height: 36px;
-  -webkit-appearance: none;
-  background: transparent;
-  cursor: pointer;
-}
-
-/* Webkit (Chrome, Safari, Edge) */
-input[type="range"]::-webkit-slider-runnable-track {
-  height: 12px;
-  background: #888;
-  border-radius: 6px;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #2a9df4;       /* つまみの色 */
-  border: 2px solid #fff;    /* 白縁で見やすく */
-  transform: translateY(-50%);
-  cursor: pointer;
-}
-
-/* Firefox */
-input[type="range"]::-moz-range-track {
-  height: 12px;
-  background: #888;
-  border-radius: 6px;
-}
-
-input[type="range"]::-moz-range-thumb {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #2a9df4;
-  border: 2px solid #fff;
-  cursor: pointer;
-}
-
-/* IE / Edge Legacy */
-input[type="range"]::-ms-track {
-  height: 12px;
-  background: transparent;
-  border-color: transparent;
-  color: transparent;
-}
-
-input[type="range"]::-ms-fill-lower {
-  background: #888;
-  border-radius: 6px;
-}
-
-input[type="range"]::-ms-fill-upper {
-  background: #888;
-  border-radius: 6px;
-}
-
-input[type="range"]::-ms-thumb {
-  width: 36px;
-  height: 36px;
-  background: #2a9df4;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  cursor: pointer;
-}
-
 /* ===== スマホ対応 ===== */
 @media (max-width: 700px) {
+
   body {
     flex-direction: column;
   }
@@ -189,6 +129,10 @@ input[type="range"]::-ms-thumb {
     display: flex;
     overflow-x: auto;
     white-space: nowrap;
+  }
+
+  .menu-group {
+    min-width: 160px;
   }
 
   #main {
@@ -201,7 +145,7 @@ input[type="range"]::-ms-thumb {
   }
 
   .card {
-    height: 45vh;
+    height: 45vh;   /* 画面高さ基準 */
   }
 
   .face-content {
@@ -212,4 +156,59 @@ input[type="range"]::-ms-thumb {
     font-size: 20px;
     padding: 14px 18px;
   }
+
+  input[type="range"] {
+    height: 36px;
+  }
+
+
+}
+
+/* スライダー本体の高さ */
+input[type="range"] {
+  height: 40px;
+}
+
+/* ===== Chrome / Edge / Safari ===== */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #333;
+  cursor: pointer;
+}
+
+/* レール（溝） */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 10px;
+}
+
+/* ===== Firefox ===== */
+input[type="range"]::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #333;
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 10px;
+}
+/* スマホ用：スライダー拡大＋位置補正 */
+input[type="range"] {
+  height: 36px;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 12px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  margin-top: -12px;   /* ←ズレ補正の本体 */
+  -webkit-appearance: none;
 }

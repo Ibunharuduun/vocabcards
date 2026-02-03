@@ -6,30 +6,35 @@
 <title>単語カード</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
 </head>
+
 <body>
 
 <div id="menu">
+
   <div class="menu-group">
-    <div class="menu-parent">▸英語</div>
+    <div class="menu-parent" onclick="toggleMenu(this)">▸英語</div>
     <div class="menu-children">
-      <div class="menu-item" data-set="0">和訳</div>
-      <div class="menu-item" data-set="1">英訳</div>
-      <div class="menu-item" data-set="2">難語</div>
+      <div class="menu-item" onclick="loadSet(0)">和訳</div>
+      <div class="menu-item" onclick="loadSet(1)">英訳</div>
+      <div class="menu-item" onclick="loadSet(2)">難語</div>
     </div>
   </div>
 
   <div class="menu-group">
-    <div class="menu-parent">▸古典</div>
+    <div class="menu-parent" onclick="toggleMenu(this)">▸古典</div>
     <div class="menu-children">
-      <div class="menu-item" data-set="3">古文</div>
-      <div class="menu-item" data-set="4">漢文</div>
+      <div class="menu-item" onclick="loadSet(3)">古文</div>
+      <div class="menu-item" onclick="loadSet(4)">漢文</div>
     </div>
   </div>
+
 </div>
 
 <div id="main">
   <div id="app">
+
     <div id="card" class="card">
       <div class="card-inner">
         <div class="face front"><div class="face-content" id="front"></div></div>
@@ -38,15 +43,21 @@
     </div>
 
     <div class="controls">
-      <button id="prevBtn">←</button>
-      <button id="nextBtn">→</button>
+      <button onclick="prev()">←</button>
+      <button onclick="next()">→</button>
     </div>
 
-    <input type="range" id="cardSlider" min="0" max="0" value="0">
-    <div id="cardCount"></div>
+    <!-- スライダー -->
+    <input type="range" id="cardSlider" min="0" max="0" value="0"
+           style="width:100%; margin-top:16px;">
+
+    <!-- 枚数表示 -->
+    <div id="cardCount" style="margin-top:8px; font-size:14px;"></div>
+
   </div>
 </div>
 
 <script src="app.js"></script>
+
 </body>
 </html>
