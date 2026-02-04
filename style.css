@@ -114,7 +114,7 @@ body {
 button {
   font-size: 18px;
   padding: 10px 20px;
-  margin: 0 10px;
+  margin:　0 10px;
 }
 
 /* ===== スマホ対応 ===== */
@@ -161,6 +161,23 @@ button {
     height: 36px;
   }
 
+  /* スマホ用：スライダー拡大＋位置補正 */
+  input[type="range"] {
+    height: 36px;
+  }
+  
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 12px;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    margin-top: -12px;   /* ←ズレ補正の本体 */
+    -webkit-appearance: none;
+  }
+
 
 }
 
@@ -177,6 +194,8 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 50%;
   background: #333;
   cursor: pointer;
+
+  margin-top: -9px;
 }
 
 /* レール（溝） */
@@ -196,11 +215,8 @@ input[type="range"]::-moz-range-thumb {
 input[type="range"]::-moz-range-track {
   height: 10px;
 }
-/* スマホ用：スライダー拡大＋位置補正 */
-input[type="range"] {
-  height: 36px;
-}
 
+<<<<<<< HEAD
 input[type="range"]::-webkit-slider-runnable-track {
   height: 12px;
 }
@@ -212,3 +228,5 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: -20px;  
   -webkit-appearance: none;
 }
+=======
+>>>>>>> c90da4857e493ee0cc76478084da6284678d90b3
