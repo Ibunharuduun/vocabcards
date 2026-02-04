@@ -209,6 +209,6 @@ input[type="range"]::-webkit-slider-thumb {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  margin-top: -12px;   /* ←ズレ補正の本体 */
+  margin-top: -20px;  
   -webkit-appearance: none;
 }
