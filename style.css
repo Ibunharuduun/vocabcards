@@ -173,8 +173,13 @@ button {
   input[type="range"]::-webkit-slider-thumb {
     width: 36px;
     height: 36px;
-    border-radius: 50%;
-    margin-top: -12px;   /* ←ズレ補正の本体 */
+    /* 縦位置を真ん中に固定するための魔法のセット */
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    
+    /* 古い margin-top 設定を打ち消す */
+    margin-top: 0 !important;
     -webkit-appearance: none;
   }
 
@@ -195,7 +200,7 @@ input[type="range"]::-webkit-slider-thumb {
   background: #333;
   cursor: pointer;
 
-  margin-top: -9px;
+  margin-top: 0px;
 }
 
 /* レール（溝） */
