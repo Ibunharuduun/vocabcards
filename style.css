@@ -215,8 +215,6 @@ input[type="range"]::-moz-range-thumb {
 input[type="range"]::-moz-range-track {
   height: 10px;
 }
-
-<<<<<<< HEAD
 input[type="range"]::-webkit-slider-runnable-track {
   height: 12px;
 }
@@ -228,5 +226,3 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: -20px;  
   -webkit-appearance: none;
 }
-=======
->>>>>>> c90da4857e493ee0cc76478084da6284678d90b3
