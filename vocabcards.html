@@ -1,55 +1,82 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>vocabcards</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css" />
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
 </head>
-
 <body>
 
+<!-- 左メニュー -->
 <div id="menu">
-
   <div class="menu-group">
     <div class="menu-parent" onclick="toggleMenu(this)">▸英語</div>
     <div class="menu-children">
-      <div class="menu-item" onclick="loadSet(0)">和訳</div>
-      <div class="menu-item" onclick="loadSet(1)">英訳</div>
-      <div class="menu-item" onclick="loadSet(2)">難語</div>
+      <div class="menu-item" onclick="changeSheet(0)">和訳</div>
+      <div class="menu-item" onclick="changeSheet(1)">英訳</div>
+      <div class="menu-item" onclick="changeSheet(2)">難語</div>
     </div>
   </div>
 
   <div class="menu-group">
     <div class="menu-parent" onclick="toggleMenu(this)">▸古典</div>
     <div class="menu-children">
-      <div class="menu-item" onclick="loadSet(3)">古文</div>
-      <div class="menu-item" onclick="loadSet(4)">漢文</div>
+      <div class="menu-item" onclick="changeSheet(3)">古文</div>
+      <div class="menu-item" onclick="changeSheet(4)">漢文</div>
     </div>
   </div>
-
 </div>
 
+<!-- 右上アイコン群 -->
+    <div id="topControls">
+      <button id="filterBtn" class="icon-btn" onclick="toggleFilterPanel()">☰</button>
+      <button id="batchBtn" class="icon-btn" onclick="openBatchEditor()">一覧</button>
+      <button id="saveAllBtn" class="save-btn" onclick="saveAll()">保存</button>
+    </div>
+
+<!-- メイン -->
 <div id="main">
   <div id="app">
 
+    <!-- カード -->
     <div id="card" class="card">
-      <div class="card-inner">
-        <div class="face front"><div class="face-content" id="front"></div></div>
-        <div class="face back"><div class="face-content" id="back"></div></div>
+      <div class="card-inner" id="cardInner">
+        <div class="face front">
+          <div class="face-top">
+            <button class="icon-small" id="editBtn" title="編集" onclick="openEditPopup()">🖊</button>
+          </div>
+          <div class="face-content" id="front"></div>
+          <div class="face-bottom">
+            <div id="levelBadge" class="level-badge" onclick="toggleLevelSelector()">Lv<span id="levelVal">3</span> ▾</div>
+            <div id="levelSelector" class="level-selector" style="display:none;">
+              <div class="level-item" onclick="setCardLevel(1)">1</div>
+              <div class="level-item" onclick="setCardLevel(2)">2</div>
+              <div class="level-item" onclick="setCardLevel(3)">3</div>
+              <div class="level-item" onclick="setCardLevel(4)">4</div>
+              <div class="level-item" onclick="setCardLevel(5)">5</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="face back">
+          <div class="face-top">
+            <button class="icon-small" id="editBtnBack" title="編集" onclick="openEditPopup()">🖋</button>
+          </div>
+          <div class="face-content" id="back"></div>
+        </div>
       </div>
     </div>
 
+    <!-- controls -->
     <div class="controls">
-      <button onclick="prev()">←</button>
-      <button onclick="next()">→</button>
+      <button class="rounded" onclick="prev()">←</button>
+      <button class="rounded" onclick="next()">→</button>
     </div>
 
     <!-- スライダー -->
-    <input type="range" id="cardSlider" min="0" max="0" value="0"
-           style="width:100%; margin-top:16px;">
+    <input type="range" id="cardSlider" min="0" max="0" value="0" style="width:100%; margin-top:16px;" />
 
     <!-- 枚数表示 -->
     <div id="cardCount" style="margin-top:8px; font-size:14px;"></div>
@@ -57,12 +84,75 @@
   </div>
 </div>
 
+<!-- フィルタパネル（右上）-->
+<div id="filterPanel" class="panel" style="display:none;">
+  <h4>表示レベル</h4>
+  <label><input type="checkbox" class="filterCheckbox" data-lv="1" checked /> Lv1</label><br/>
+  <label><input type="checkbox" class="filterCheckbox" data-lv="2" checked /> Lv2</label><br/>
+  <label><input type="checkbox" class="filterCheckbox" data-lv="3" checked /> Lv3</label><br/>
+  <label><input type="checkbox" class="filterCheckbox" data-lv="4" checked /> Lv4</label><br/>
+  <label><input type="checkbox" class="filterCheckbox" data-lv="5" checked /> Lv5</label>
+</div>
+
+<!-- 編集ポップアップ -->
+<div id="editPopup" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>カード編集</h3>
+    <label>表面（Front）<br/>
+      <textarea id="editFront" rows="3"></textarea>
+    </label>
+    <label>裏面（Back）<br/>
+      <textarea id="editBack" rows="3"></textarea>
+    </label>
+    <label>レベル
+      <select id="editLevel">
+        <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
+      </select>
+    </label>
+    <div class="modal-actions">
+      <button class="rounded" onclick="applyEdit()">保存（ローカル）</button>
+      <button class="rounded" onclick="deleteCurrentCard()">削除</button>
+      <button class="rounded" onclick="closeEditPopup()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- バッチ編集ポップアップ -->
+<div id="batchPopup" class="modal large" style="display:none;">
+  <div class="modal-content">
+    <h3>一括編集</h3>
+    <div style="display:flex; gap:8px; margin-bottom:8px;">
+      <input id="batchSearch" placeholder="検索（表面/裏面）" oninput="renderBatchList()" />
+      <select id="batchFilterLevel" onchange="renderBatchList()">
+        <option value="">すべてのレベル</option>
+        <option value="1">Lv1</option>
+        <option value="2">Lv2</option>
+        <option value="3">Lv3</option>
+        <option value="4">Lv4</option>
+        <option value="5">Lv5</option>
+      </select>
+      <button class="rounded" onclick="toggleBatchSelectMode()">複数選択</button>
+    </div>
+
+    <div id="batchList" class="batch-list"></div>
+
+    <div style="margin-top:8px; display:flex; gap:8px;">
+      <select id="batchActionLevel">
+        <option value="">-- レベルに変更 --</option>
+        <option value="1">Lv1</option><option value="2">Lv2</option><option value="3">Lv3</option>
+        <option value="4">Lv4</option><option value="5">Lv5</option>
+      </select>
+      <button class="rounded" onclick="applyBatchChange()">実行</button>
+      <button class="rounded" onclick="closeBatchEditor()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- ローディング -->
 <div id="loading" style="display:none;">
   <div class="spinner"></div>
 </div>
 
-
 <script src="app.js"></script>
-
 </body>
 </html>
