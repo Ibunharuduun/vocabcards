@@ -44,34 +44,51 @@ const SHEETS = {
 };
 
 async function preloadAll() {
-  await Promise.all(
-    Object.entries(SHEETS).map(async ([id, sheet]) => {
-      if (cache[id]) return;
+  showLoading();
 
-      const res = await fetch(GAS_URL + "?id=" + sheet);
-      const json = await res.json();
+  try {
+    await Promise.all(
+      Object.entries(SHEETS).map(async ([id, sheet]) => {
+        if (cache[id]) return;
 
-      cache[id] = json
-        .filter(r => r.length >= 2)
-        .map(r => [String(r[0] || ""), String(r[1] || "")]);
+        const res = await fetch(GAS_URL + "?id=" + sheet);
+        const json = await res.json();
 
-      console.log("preloaded:", sheet);
-    })
-  );
+        cache[id] = json
+          .filter(r => r.length >= 2)
+          .map(r => [String(r[0] || ""), String(r[1] || "")]);
+
+        console.log("preloaded:", sheet);
+      })
+    );
+
+  } catch (e) {
+    console.log("preload失敗:", e);
+  } finally {
+    hideLoading();
+  }
 }
 
-
-window.addEventListener("DOMContentLoaded", () => {
-  loadSet(0);     // 最初の表示
-  preloadAll();   // 裏で全部読む
+window.addEventListener("DOMContentLoaded", async () => {
+  await preloadAll();  // 全部読む
+  loadSet(0);          // 即表示（キャッシュ）
 });
+
+function showLoading() {
+  document.getElementById("loading").style.display = "flex";
+}
+
+function hideLoading() {
+  document.getElementById("loading").style.display = "none";
+}
 
 
 async function loadSet(id) {
   try {
+    showLoading();
+
     currentSetId = id;
 
-    // 🔹キャッシュがあれば即使用
     if (cache[id]) {
       cards = cache[id];
       index = 0;
@@ -89,17 +106,21 @@ async function loadSet(id) {
       .filter(r => r.length >= 2)
       .map(r => [String(r[0] || ""), String(r[1] || "")]);
 
-    cache[id] = cards;   // 🔹保存
+    cache[id] = cards;
 
     index = 0;
     slider.max = Math.max(cards.length - 1, 0);
     slider.value = 0;
+
     show();
 
   } catch (err) {
     alert("読み込みエラー：" + err.message);
+  } finally {
+    hideLoading();   // ← 成功でも失敗でも消す
   }
 }
+
 
 
 
@@ -143,7 +164,3 @@ slider.addEventListener("input", () => {
 document.getElementById("card").onclick = () => {
   document.getElementById("card").classList.toggle("flipped");
 };
-
-window.addEventListener("DOMContentLoaded", () => {
-  loadSet(0);
-});
