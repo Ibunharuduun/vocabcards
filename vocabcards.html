@@ -97,15 +97,14 @@
 <!-- 編集ポップアップ -->
 <div id="editPopup" class="modal" style="display:none;">
   <div class="modal-content">
-    <h3>カード編集</h3>
-    <label>表面（Front）<br/>
-      <textarea id="editFront" rows="3"></textarea>
+    <label>Front<br/>
+      <textarea id="editFront" class="modal-textbox"rows="3"></textarea>
     </label>
-    <label>裏面（Back）<br/>
-      <textarea id="editBack" rows="3"></textarea>
+    <label>Back<br/>
+      <textarea id="editBack" class="modal-textbox"rows="3"></textarea>
     </label>
     <label>レベル
-      <select id="editLevel">
+      <select id="editLevel" border-radius="15px">
         <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
       </select>
     </label>
