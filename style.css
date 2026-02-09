@@ -249,10 +249,166 @@ input[type="range"] { height: 40px; border-radius:20px; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* レスポンシブ */
-@media (max-width: 700px) {
-  #menu { width: 100%; display:flex; overflow-x:auto; border-radius: 0 0 12px 12px; box-shadow:none; }
-  #app { max-width: 100%; }
-  .card { height: 46vh; }
-  .modal-content { width: 95%; }
+/* =========================================
+   スマホ用レスポンシブ設定 (768px以下)
+   ========================================= */
+@media (max-width: 768px) {
+
+  /* ボディ：縦並びレイアウトに変更 */
+  body {
+    flex-direction: column;
+    height: 100vh; /* 画面いっぱいに固定 */
+    overflow: hidden; /* 全体のスクロールを禁止（内部でスクロールさせる） */
+    background: #f1edeb;
+  }
+
+  /* -------------------------
+     1. 上部メニューバー
+     ------------------------- */
+  #menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto; /* 開いたときに伸びるように */
+    min-height: 60px;
+    border-radius: 0 0 15px 15px; /* 下側だけ丸く */
+    z-index: 1000;
+    
+    /* 横並び設定 */
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    overflow-x: auto; /* 横スクロール許可 */
+    white-space: nowrap;
+    padding: 10px;
+    gap: 10px;
+  }
+
+  /* メニューの各グループ */
+  .menu-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 4px;
+  }
+
+  .menu-parent {
+    margin: 0;
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  /* 子メニュー（展開時）のデザイン調整 */
+  .menu-children {
+    position: relative;
+    background: transparent;
+    padding-left: 10px;
+  }
+  .menu-item {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  /* -------------------------
+     2. 下部操作バー (一覧・保存)
+     ------------------------- */
+  #topControls {
+    position: fixed;
+    top: auto;    /* 上部固定を解除 */
+    right: auto;
+    bottom: 0;    /* 下部に固定 */
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background: white;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    z-index: 1000;
+
+    display: flex;
+    justify-content: space-around; /* 均等配置 */
+    align-items: center;
+    padding: 0;
+    gap: 0;
+  }
+
+  /* ボタンのスタイル上書き */
+  .icon-btn {
+    position: static;
+    transform: none;
+    box-shadow: none;
+    background: transparent;
+    color: #333;
+    font-weight: bold;
+    font-size: 14px;
+    border: 1px solid #eee;
+    padding: 10px 20px;
+    width: 40%; /* 幅を広めに */
+  }
+
+  /* 保存ボタンの固定位置解除とスタイル調整 */
+  .save-btn {
+    position: static; /* 固定解除 */
+    margin: 0;
+    border-radius: 12px;
+    padding: 12px 20px;
+    width: 40%;
+    font-size: 14px;
+    box-shadow: none;
+  }
+
+  /* -------------------------
+     3. メインエリア (カードとスライダー)
+     ------------------------- */
+  #main {
+    margin-top: 70px;    /* 上部メニューの分空ける */
+    margin-bottom: 70px; /* 下部バーの分空ける */
+    padding: 10px;
+    height: calc(100vh - 140px); /* 上下の高さを引いた残り */
+    overflow-y: auto;    /* コンテンツが多い場合はスクロール */
+    display: flex;
+    align-items: center; /* 上下中央寄せ */
+  }
+
+  #app {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* カードの高さ調整 */
+  .card {
+    height: 50vh; /* 画面の半分の高さ */
+    max-height: 400px;
+    margin: 0 auto 20px auto; /* 下に余白 */
+  }
+
+  /* カード内の文字サイズ調整 */
+  .face-content {
+    font-size: 22px; /* スマホ用に少し小さく */
+    padding: 10px;
+  }
+
+  /* スライダーとカウンター */
+  input[type="range"] {
+    margin-top: 20px;
+    height: 30px; /* タップしやすいように少し太く */
+  }
+  
+  #cardCount {
+    margin-bottom: 10px;
+  }
+
+  /* モーダル調整（画面からはみ出ないように） */
+  .modal-content {
+    width: 90%;
+    padding: 20px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal-textbox {
+    width: 100%; /* 幅を親に合わせる */
+    box-sizing: border-box;
+  }
 }
