@@ -130,22 +130,40 @@
         <option value="4">Lv4</option>
         <option value="5">Lv5</option>
       </select>
-      <button class="rounded" onclick="toggleBatchSelectMode()">複数選択</button>
+      <button class="rounded2" style="margin-bottom: 12px;" onclick="toggleBatchSelectMode()">複数選択</button>
     </div>
 
     <div id="batchList" class="batch-list"></div>
 
     <div style="margin-top:8px; display:flex; gap:8px;">
-      <select id="batchActionType" class="patch_bar">
-        <option value="">操作を選択</option>
-        <option value="level">レベル一括変更</option>
-        <option value="delete">一括削除</option>
-      </select>
-      <button class="rounded" onclick="applyBatchChange()">実行</button>
+      <button class="rounded" onclick="runBatchAction()">選択分を実行</button>
       <button class="rounded" onclick="closeBatchEditor()">閉じる</button>
     </div>
   </div>
 </div>
+
+<div id="batchModeModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <h3>一括操作</h3>
+
+    <button class="rounded" onclick="startBatchLevel()">レベル一括変更</button>
+    <button class="rounded" onclick="startBatchDelete()">一括削除</button>
+
+    <div id="batchLevelChooser" style="display:none; margin-top:12px;">
+      <select id="batchLevelTarget" class="modal-select">
+        <option value="1">Lv1</option>
+        <option value="2">Lv2</option>
+        <option value="3">Lv3</option>
+        <option value="4">Lv4</option>
+        <option value="5">Lv5</option>
+      </select>
+      <button class="rounded" onclick="confirmBatchLevel()">このレベルにする</button>
+    </div>
+
+    <button class="rounded" onclick="closeBatchModeModal()">キャンセル</button>
+  </div>
+</div>
+
 
 <!-- ローディング -->
 <div id="loading" style="display:none;">

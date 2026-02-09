@@ -25,6 +25,10 @@ let slider, counter;
 
 let addMode = false;
 
+let batchPendingAction = null;
+let batchTargetLevel = null;
+
+
 
 window.addEventListener("DOMContentLoaded", async () => {
   slider  = document.getElementById("cardSlider");
@@ -344,11 +348,79 @@ function openBatchEditor() {
 function closeBatchEditor() {
   document.getElementById("batchPopup").style.display = "none";
 }
+
 function toggleBatchSelectMode() {
-  batchSelectMode = !batchSelectMode;
-  batchSelected = new Set();
+  openBatchModeModal();
+}
+
+function openBatchModeModal() {
+  document.getElementById("batchModeModal").style.display = "flex";
+}
+
+function closeBatchModeModal() {
+  document.getElementById("batchModeModal").style.display = "none";
+  document.getElementById("batchLevelChooser").style.display = "none";
+}
+
+function startBatchDelete() {
+  batchPendingAction = "delete";
+  enableBatchSelectMode();
+  closeBatchModeModal();
+}
+
+function startBatchLevel() {
+  batchPendingAction = "level";
+  document.getElementById("batchLevelChooser").style.display = "block";
+}
+
+function confirmBatchLevel() {
+  batchTargetLevel = Number(
+    document.getElementById("batchLevelTarget").value
+  );
+
+  enableBatchSelectMode();
+  closeBatchModeModal();
+}
+
+function enableBatchSelectMode() {
+  batchSelectMode = true;
+  batchSelected.clear();
   renderBatchList();
 }
+
+function runBatchAction() {
+
+  if (batchSelected.size === 0) {
+    alert("カードを選択してください");
+    return;
+  }
+
+  const targets = Array.from(batchSelected).sort((a,b)=>b-a);
+
+  if (batchPendingAction === "delete") {
+
+    if (!confirm("削除しますか？")) return;
+    targets.forEach(i => cards.splice(i,1));
+
+  }
+
+  if (batchPendingAction === "level") {
+
+    targets.forEach(i => cards[i].level = batchTargetLevel);
+  }
+
+  cards.forEach((c,i)=>c.id=i+1);
+
+  batchSelectMode = false;
+  batchSelected.clear();
+  batchPendingAction = null;
+
+  dirty = true;
+
+  renderBatchList();
+  applyFiltersAndShow();
+}
+
 function renderBatchList() {
   const container = document.getElementById("batchList");
   const q = (document.getElementById("batchSearch").value || "").toLowerCase();
@@ -420,45 +492,6 @@ function renderBatchList() {
 
     container.appendChild(row);
   });
-}
-
-function applyBatchChange() {
-
-  if (!batchSelectMode || batchSelected.size === 0) {
-    alert("先に複数選択してください");
-    return;
-  }
-
-  const action = document.getElementById("batchActionType").value;
-
-  if (!action) {
-    alert("操作を選んでください");
-    return;
-  }
-
-  const targets = Array.from(batchSelected).sort((a,b)=>b-a);
-
-  if (action === "delete") {
-
-    if (!confirm("選択カードを削除しますか？")) return;
-    targets.forEach(i => cards.splice(i,1));
-
-  } else if (action === "level") {
-
-    const lv = Number(document.getElementById("batchActionLevel").value);
-    if (!lv) {
-      alert("変更レベルを選択");
-      return;
-    }
-    targets.forEach(i => cards[i].level = lv);
-  }
-
-  cards.forEach((c,i)=>c.id = i+1);
-  batchSelected.clear();
-  dirty = true;
-
-  renderBatchList();
-  applyFiltersAndShow();
 }
 
 // ---------- 保存（GAS へ一括送信） ----------
