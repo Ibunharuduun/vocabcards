@@ -31,7 +31,6 @@
 
 <!-- 右上アイコン群 -->
     <div id="topControls">
-      <button id="filterBtn" class="icon-btn" onclick="toggleFilterPanel()">☰</button>
       <button id="batchBtn" class="icon-btn" onclick="openBatchEditor()">一覧</button>
       <button id="saveAllBtn" class="save-btn" onclick="saveAll()">保存</button>
     </div>
@@ -42,27 +41,38 @@
 
     <!-- カード -->
     <div id="card" class="card">
+      <!-- フィルタパネル -->
+      <div id="filterPanel" class="panel" style="display:none;">
+        <h4>表示レベル</h4>
+        <label><input type="checkbox" class="filterCheckbox" data-lv="1" checked /> Lv1</label><br/>
+        <label><input type="checkbox" class="filterCheckbox" data-lv="2" checked /> Lv2</label><br/>
+        <label><input type="checkbox" class="filterCheckbox" data-lv="3" checked /> Lv3</label><br/>
+        <label><input type="checkbox" class="filterCheckbox" data-lv="4" checked /> Lv4</label><br/>
+        <label><input type="checkbox" class="filterCheckbox" data-lv="5" checked /> Lv5</label>
+      </div>
       <div class="card-inner" id="cardInner">
         <div class="face front">
           <div class="face-top">
-            <button class="icon-small" id="editBtn" title="編集" onclick="openEditPopup()">🖊</button>
+            <button class="icon-small no-flip" onclick="addNewCard()">＋</button>
+            <button class="icon-small no-flip" onclick="toggleFilterPanel()">☰</button>
+            <button class="icon-small no-flip" id="editBtn" title="編集" onclick="openEditPopup()">🖊</button>
           </div>
           <div class="face-content" id="front"></div>
           <div class="face-bottom">
-            <div id="levelBadge" class="level-badge" onclick="toggleLevelSelector()">Lv<span id="levelVal">3</span> ▾</div>
+            <div id="levelBadge" class="level-badge no-flip" onclick="toggleLevelSelector()">Lv<span id="levelVal">3</span> ▾</div>
             <div id="levelSelector" class="level-selector" style="display:none;">
-              <div class="level-item" onclick="setCardLevel(1)">1</div>
-              <div class="level-item" onclick="setCardLevel(2)">2</div>
-              <div class="level-item" onclick="setCardLevel(3)">3</div>
-              <div class="level-item" onclick="setCardLevel(4)">4</div>
-              <div class="level-item" onclick="setCardLevel(5)">5</div>
+              <div class="level-item no-flip" onclick="setCardLevel(1)">1</div>
+              <div class="level-item no-flip" onclick="setCardLevel(2)">2</div>
+              <div class="level-item no-flip" onclick="setCardLevel(3)">3</div>
+              <div class="level-item no-flip" onclick="setCardLevel(4)">4</div>
+              <div class="level-item no-flip" onclick="setCardLevel(5)">5</div>
             </div>
           </div>
         </div>
 
         <div class="face back">
           <div class="face-top">
-            <button class="icon-small" id="editBtnBack" title="編集" onclick="openEditPopup()">🖋</button>
+            <button class="icon-small no-flip" id="editBtnBack" title="編集" onclick="openEditPopup()">🖋</button>
           </div>
           <div class="face-content" id="back"></div>
         </div>
@@ -71,8 +81,8 @@
 
     <!-- controls -->
     <div class="controls">
-      <button class="rounded" onclick="prev()">←</button>
-      <button class="rounded" onclick="next()">→</button>
+      <button class="rounded" onclick="prev(); event.stopPropagation()">←</button>
+      <button class="rounded" onclick="next(); event.stopPropagation()">→</button>
     </div>
 
     <!-- スライダー -->
@@ -84,33 +94,23 @@
   </div>
 </div>
 
-<!-- フィルタパネル（右上）-->
-<div id="filterPanel" class="panel" style="display:none;">
-  <h4>表示レベル</h4>
-  <label><input type="checkbox" class="filterCheckbox" data-lv="1" checked /> Lv1</label><br/>
-  <label><input type="checkbox" class="filterCheckbox" data-lv="2" checked /> Lv2</label><br/>
-  <label><input type="checkbox" class="filterCheckbox" data-lv="3" checked /> Lv3</label><br/>
-  <label><input type="checkbox" class="filterCheckbox" data-lv="4" checked /> Lv4</label><br/>
-  <label><input type="checkbox" class="filterCheckbox" data-lv="5" checked /> Lv5</label>
-</div>
-
 <!-- 編集ポップアップ -->
 <div id="editPopup" class="modal" style="display:none;">
   <div class="modal-content">
     <label>Front<br/>
-      <textarea id="editFront" class="modal-textbox"rows="3"></textarea>
+      <textarea id="editFront" class="modal-textbox"rows="2"></textarea>
     </label>
     <label>Back<br/>
-      <textarea id="editBack" class="modal-textbox"rows="3"></textarea>
+      <textarea id="editBack" class="modal-textbox"rows="2"></textarea>
     </label>
     <label>レベル
-      <select id="editLevel" border-radius="15px">
+      <select id="editLevel" class="modal-select">
         <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
       </select>
     </label>
     <div class="modal-actions">
       <button class="rounded" onclick="applyEdit()">保存（ローカル）</button>
-      <button class="rounded" onclick="deleteCurrentCard()">削除</button>
+      <button id="deleteBtn" class="rounded" onclick="deleteCurrentCard()">削除</button>
       <button class="rounded" onclick="closeEditPopup()">閉じる</button>
     </div>
   </div>
@@ -120,9 +120,9 @@
 <div id="batchPopup" class="modal large" style="display:none;">
   <div class="modal-content">
     <h3>一括編集</h3>
-    <div style="display:flex; gap:8px; margin-bottom:8px;">
-      <input id="batchSearch" placeholder="検索（表面/裏面）" oninput="renderBatchList()" />
-      <select id="batchFilterLevel" onchange="renderBatchList()">
+    <div style="display:flex; gap:8px;  margin-bottom:0px;">
+      <input id="batchSearch" placeholder="検索（表面/裏面）" class="patch_bar" oninput="renderBatchList()" />
+      <select id="batchFilterLevel" class="patch_bar" onchange="renderBatchList()">
         <option value="">すべてのレベル</option>
         <option value="1">Lv1</option>
         <option value="2">Lv2</option>
@@ -136,10 +136,10 @@
     <div id="batchList" class="batch-list"></div>
 
     <div style="margin-top:8px; display:flex; gap:8px;">
-      <select id="batchActionLevel">
-        <option value="">-- レベルに変更 --</option>
-        <option value="1">Lv1</option><option value="2">Lv2</option><option value="3">Lv3</option>
-        <option value="4">Lv4</option><option value="5">Lv5</option>
+      <select id="batchActionType" class="patch_bar">
+        <option value="">操作を選択</option>
+        <option value="level">レベル一括変更</option>
+        <option value="delete">一括削除</option>
       </select>
       <button class="rounded" onclick="applyBatchChange()">実行</button>
       <button class="rounded" onclick="closeBatchEditor()">閉じる</button>

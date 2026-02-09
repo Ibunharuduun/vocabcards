@@ -23,6 +23,9 @@ let filters = new Set([1,2,3,4,5]);
 // DOM 参照（DOMContentLoaded 後に確実に存在する）
 let slider, counter;
 
+let addMode = false;
+
+
 window.addEventListener("DOMContentLoaded", async () => {
   slider  = document.getElementById("cardSlider");
   counter = document.getElementById("cardCount");
@@ -35,10 +38,14 @@ window.addEventListener("DOMContentLoaded", async () => {
 function attachUI() {
   const cardContainer = document.getElementById("card");
   if (cardContainer) {
-    cardContainer.addEventListener("click", () => {
-      cardContainer.classList.toggle("flipped");
-    });
-  }
+  cardContainer.addEventListener("click", (e) => {
+    // 操作系UIをクリックしたら反転しない
+    if (e.target.closest("button, .no-flip, input, select, textarea")) return;
+
+    cardContainer.classList.toggle("flipped");
+  });
+}
+
 
   if (slider) {
     slider.addEventListener("input", () => {
@@ -171,6 +178,7 @@ function clearShow() {
 }
 
 function show() {
+  document.getElementById("card").classList.remove("flipped");
   if (!cards || cards.length === 0) return clearShow();
   const front = document.getElementById("front");
   const back  = document.getElementById("back");
@@ -188,15 +196,31 @@ function show() {
 
 // ---------- ナビ ----------
 function next() {
-  const nextIdx = findNextVisibleIndex(index + 1);
-  if (nextIdx !== null) index = nextIdx;
-  show();
+  if (cards.length === 0) return;
+
+  const card = document.getElementById("card");
+
+  // 先に表に戻す
+  card.classList.remove("flipped");
+
+  setTimeout(() => {
+    index = (index + 1) % cards.length;
+    show();
+  }, 220); // ← 0.6sアニメの1/3〜1/2くらいでOK
 }
+
 function prev() {
-  const prevIdx = findPrevVisibleIndex(index - 1);
-  if (prevIdx !== null) index = prevIdx;
-  show();
+  if (cards.length === 0) return;
+
+  const card = document.getElementById("card");
+  card.classList.remove("flipped");
+
+  setTimeout(() => {
+    index = (index - 1 + cards.length) % cards.length;
+    show();
+  }, 220);
 }
+
 function findNextVisibleIndex(start) {
   for (let i=start; i<cards.length; i++) if (filters.has(cards[i].level)) return i;
   return null;
@@ -225,29 +249,78 @@ function setCardLevel(lv) {
 
 // ---------- 単一カード編集 ----------
 function openEditPopup() {
+  addMode = false;
+
+  const delBtn = document.getElementById("deleteBtn");
+  delBtn.classList.remove("hidden");
+
   if (!cards[index]) return;
   document.getElementById("editFront").value = cards[index].front;
   document.getElementById("editBack").value  = cards[index].back;
   document.getElementById("editLevel").value = String(cards[index].level || 3);
   document.getElementById("editPopup").style.display = "flex";
 }
+
+
 function closeEditPopup() {
   document.getElementById("editPopup").style.display = "none";
+  document.getElementById("deleteBtn").classList.remove("hidden");
 }
+
+
+// ---------- 新規カード追加 ----------
+function addNewCard() {
+  addMode = true;
+
+  const delBtn = document.getElementById("deleteBtn");
+  if (delBtn) delBtn.classList.add("hidden");
+
+  document.getElementById("editFront").value = "";
+  document.getElementById("editBack").value  = "";
+  document.getElementById("editLevel").value = "3";
+
+  document.getElementById("editPopup").style.display = "flex";
+}
+
+
 function applyEdit() {
   const f = document.getElementById("editFront").value.trim();
   const b = document.getElementById("editBack").value.trim();
   const lv = Number(document.getElementById("editLevel").value);
-  if (!cards[index]) return;
-  cards[index].front = f;
-  cards[index].back  = b;
-  cards[index].level = lv;
+
+  if (!f && !b) return;
+
+  if (addMode) {
+    const newCard = {
+      id: cards.length + 1,
+      front: f,
+      back: b,
+      level: lv
+    };
+
+    cards.push(newCard);
+    index = cards.length - 1;   // ← 今追加したカードを表示
+
+    addMode = false;
+
+  } else {
+    if (!cards[index]) return;
+    cards[index].front = f;
+    cards[index].back  = b;
+    cards[index].level = lv;
+  }
+
   dirty = true;
-  cache[currentSetId] = cards.map(c=>({...c}));
+  cache[currentSetId] = cards.map(c => ({...c}));
+
   closeEditPopup();
-  show();
+  applyFiltersAndShow();   // フィルタ対応してるならこれ
 }
+
+
+
 function deleteCurrentCard() {
+  if (addMode) return;
   if (!cards[index]) return;
   if (!confirm("このカードを削除します。よろしいですか？")) return;
   cards.splice(index, 1);
@@ -278,81 +351,112 @@ function toggleBatchSelectMode() {
 }
 function renderBatchList() {
   const container = document.getElementById("batchList");
-  const q = (document.getElementById("batchSearch").value || "").trim().toLowerCase();
+  const q = (document.getElementById("batchSearch").value || "").toLowerCase();
   const levelFilter = document.getElementById("batchFilterLevel").value;
+
   container.innerHTML = "";
+
   cards.forEach((c,i) => {
+
     if (levelFilter && String(c.level) !== levelFilter) return;
-    if (q) {
-      const s = (c.front + " " + c.back).toLowerCase();
-      if (!s.includes(q)) return;
-    }
+    if (q && !(c.front + c.back).toLowerCase().includes(q)) return;
+
     const row = document.createElement("div");
     row.className = "batch-row";
 
+    // --- checkbox ---
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.style.display = batchSelectMode ? "block" : "none";
     checkbox.checked = batchSelected.has(i);
-    checkbox.onchange = (e)=> {
-      if (e.target.checked) batchSelected.add(i); else batchSelected.delete(i);
-      // stop propagation to avoid opening card
+    checkbox.onchange = e => {
+      if (e.target.checked) batchSelected.add(i);
+      else batchSelected.delete(i);
       e.stopPropagation();
     };
 
-    const num = document.createElement("div"); num.className = "num"; num.textContent = i+1;
-    const text = document.createElement("div"); text.className = "text"; text.textContent = `${c.front} → ${c.back}`;
-    const lv = document.createElement("div"); lv.className = "lv"; lv.textContent = `Lv${c.level}`;
+    // --- 番号 ---
+    const num = document.createElement("div");
+    num.className = "num";
+    num.textContent = i+1;
+
+    // --- front textarea ---
+    const front = document.createElement("textarea");
+    front.value = c.front;
+    front.className = "batch-text";
+    front.oninput = e => {
+      cards[i].front = e.target.value;
+      dirty = true;
+    };
+
+    // --- back textarea ---
+    const back = document.createElement("textarea");
+    back.value = c.back;
+    back.className = "batch-text";
+    back.oninput = e => {
+      cards[i].back = e.target.value;
+      dirty = true;
+    };
+
+    // --- level select ---
+    const lv = document.createElement("select");
+    for (let n=1;n<=5;n++){
+      const op = document.createElement("option");
+      op.value = n;
+      op.textContent = "Lv"+n;
+      if (n === c.level) op.selected = true;
+      lv.appendChild(op);
+    }
+    lv.onchange = e => {
+      cards[i].level = Number(e.target.value);
+      dirty = true;
+    };
 
     row.appendChild(checkbox);
     row.appendChild(num);
-    row.appendChild(text);
+    row.appendChild(front);
+    row.appendChild(back);
     row.appendChild(lv);
-
-    row.onclick = (e) => {
-      if (batchSelectMode) {
-        // toggle checkbox
-        checkbox.checked = !checkbox.checked;
-        if (checkbox.checked) batchSelected.add(i); else batchSelected.delete(i);
-      } else {
-        index = i;
-        closeBatchEditor();
-        show();
-      }
-    };
 
     container.appendChild(row);
   });
 }
+
 function applyBatchChange() {
-  let targets = [];
-  if (batchSelectMode) {
-    targets = Array.from(batchSelected);
-    if (!targets.length) { alert("行を選択してください"); return; }
-  } else {
-    const q = (document.getElementById("batchSearch").value || "").trim().toLowerCase();
-    const levelFilter = document.getElementById("batchFilterLevel").value;
-    cards.forEach((c,i) => {
-      if (levelFilter && String(c.level) !== levelFilter) return;
-      if (q) {
-        const s = (c.front + " " + c.back).toLowerCase();
-        if (!s.includes(q)) return;
-      }
-      targets.push(i);
-    });
+
+  if (!batchSelectMode || batchSelected.size === 0) {
+    alert("先に複数選択してください");
+    return;
   }
 
-  const actionLv = document.getElementById("batchActionLevel").value;
-  if (!actionLv) {
-    if (!confirm("選択されたカードを削除します。よろしいですか？")) return;
-    targets.sort((a,b)=>b-a).forEach(i => cards.splice(i,1));
-  } else {
-    targets.forEach(i => { cards[i].level = Number(actionLv); });
+  const action = document.getElementById("batchActionType").value;
+
+  if (!action) {
+    alert("操作を選んでください");
+    return;
+  }
+
+  const targets = Array.from(batchSelected).sort((a,b)=>b-a);
+
+  if (action === "delete") {
+
+    if (!confirm("選択カードを削除しますか？")) return;
+    targets.forEach(i => cards.splice(i,1));
+
+  } else if (action === "level") {
+
+    const lv = Number(document.getElementById("batchActionLevel").value);
+    if (!lv) {
+      alert("変更レベルを選択");
+      return;
+    }
+    targets.forEach(i => cards[i].level = lv);
   }
 
   cards.forEach((c,i)=>c.id = i+1);
+  batchSelected.clear();
   dirty = true;
-  cache[currentSetId] = cards.map(c=>({...c}));
+
   renderBatchList();
   applyFiltersAndShow();
 }
@@ -369,7 +473,7 @@ async function saveAll() {
     if (res && (res.status === "success" || res.status === "ok" || res.status === "done")) {
       dirty = false;
       cache[currentSetId] = cards.map(c=>({...c}));
-      alert("保存しました（GAS に反映）");
+      alert("保存しました");
     } else {
       console.warn("saveAll: unexpected response", res);
       alert("保存は完了しましたが、サーバー応答が不定です（詳細はコンソール）。");
@@ -385,12 +489,16 @@ async function saveAll() {
 async function saveToGAS(sheet, data) {
   const res = await fetch(GAS_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "text/plain"   // ← ここが核心
+    },
     body: JSON.stringify({ id: sheet, data })
   });
+
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return await res.json();
 }
+
 
 // ---------- ユーティリティ ----------
 function showLoading() { const el = document.getElementById("loading"); if (el) el.style.display = "flex"; }
