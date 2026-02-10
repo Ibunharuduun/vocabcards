@@ -111,7 +111,7 @@
     <div class="modal-actions">
       <button class="rounded" onclick="applyEdit()">保存（ローカル）</button>
       <button id="deleteBtn" class="rounded" onclick="deleteCurrentCard()">削除</button>
-      <button class="rounded" onclick="closeEditPopup()">閉じる</button>
+      <button class="rounded-close" onclick="closeEditPopup()">閉じる</button>
     </div>
   </div>
 </div>
@@ -130,14 +130,14 @@
         <option value="4">Lv4</option>
         <option value="5">Lv5</option>
       </select>
-      <button class="rounded2" style="margin-bottom: 12px;" onclick="toggleBatchSelectMode()">複数選択</button>
+      <button class="rounded" style="margin-bottom: 12px;" onclick="toggleBatchSelectMode()">複数選択</button>
     </div>
 
     <div id="batchList" class="batch-list"></div>
 
     <div style="margin-top:8px; display:flex; gap:8px;">
       <button class="rounded" onclick="runBatchAction()">選択分を実行</button>
-      <button class="rounded" onclick="closeBatchEditor()">閉じる</button>
+      <button class="rounded-close" style="left: 650px;"onclick="closeBatchEditor()">閉じる</button>
     </div>
   </div>
 </div>

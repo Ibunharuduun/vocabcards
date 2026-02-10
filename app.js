@@ -19,6 +19,7 @@ let dirty = false; // ローカルに未コミットの変更ありフラグ
 let batchSelectMode = false;
 let batchSelected = new Set();
 let filters = new Set([1,2,3,4,5]);
+let filteredCards = [];
 
 // DOM 参照（DOMContentLoaded 後に確実に存在する）
 let slider, counter;
@@ -38,6 +39,31 @@ window.addEventListener("DOMContentLoaded", async () => {
   await loadSet(0);
 });
 
+document.addEventListener("keydown", (e) => {
+
+  // モーダルが開いていたら無効
+  if (document.querySelector(".modal[style*='flex']")) return;
+
+  // フォーカスが入力系なら無効
+  const el = document.activeElement;
+  if (!el) return;
+  const tag = el.tagName;
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable) return;
+
+  if (e.key === "ArrowRight") {
+    e.preventDefault();
+    next();
+  }
+
+  if (e.key === "ArrowLeft") {
+    e.preventDefault();
+    prev();
+  }
+
+});
+
+
+
 // ---------- UI 初期化 ----------
 function attachUI() {
   const cardContainer = document.getElementById("card");
@@ -50,13 +76,18 @@ function attachUI() {
   });
 }
 
-
   if (slider) {
-    slider.addEventListener("input", () => {
-      index = Number(slider.value) || 0;
-      show();
-    });
-  }
+  slider.addEventListener("input", () => {
+    const vis = getVisibleIndices();
+    const pos = Number(slider.value) || 0;
+
+    if (vis.length === 0) return;
+
+    index = vis[Math.min(pos, vis.length - 1)];
+    show();
+  });
+}
+
 
   // filter checkboxes
   document.querySelectorAll(".filterCheckbox").forEach(cb => {
@@ -67,6 +98,8 @@ function attachUI() {
     });
   });
 }
+
+
 
 // ---------- データ読み込み（プリロード） ----------
 async function preloadAll() {
@@ -158,21 +191,32 @@ function applyFiltersAndShow() {
     clearShow();
     return;
   }
-  const visibleIndices = cards.map((c,i)=>({c,i})).filter(x=>filters.has(x.c.level)).map(x=>x.i);
-  if (visibleIndices.length === 0) {
+
+  const vis = getVisibleIndices();
+
+  if (vis.length === 0) {
     document.getElementById("front").textContent = "(表示するカードがありません)";
     document.getElementById("back").textContent = "";
-    counter.textContent = `0 / ${cards.length}`;
+    counter.textContent = `0 / 0`;
+    slider.max = 0;
     slider.value = 0;
-    slider.max = Math.max(cards.length - 1, 0);
     return;
   }
-  if (!visibleIndices.includes(index)) {
-    index = visibleIndices[0];
-  }
-  slider.max = Math.max(cards.length - 1, 0);
-  slider.value = index;
+
+  // 今の index が可視に含まれないなら先頭へ
+  if (!vis.includes(index)) index = vis[0];
+
+  slider.max = vis.length - 1;
+  slider.value = vis.indexOf(index);
+
   show();
+}
+
+function getVisibleIndices() {
+  return cards
+    .map((c,i)=>({c,i}))
+    .filter(x => filters.has(x.c.level))
+    .map(x => x.i);
 }
 
 function clearShow() {
@@ -184,55 +228,55 @@ function clearShow() {
 function show() {
   document.getElementById("card").classList.remove("flipped");
   if (!cards || cards.length === 0) return clearShow();
-  const front = document.getElementById("front");
-  const back  = document.getElementById("back");
-  const cardEl = document.getElementById("card");
-  const levEl = document.getElementById("levelVal");
+
+  const vis = getVisibleIndices();
+  if (vis.length === 0) return clearShow();
+
+  const pos = vis.indexOf(index);
+  if (pos === -1) index = vis[0];
 
   const c = cards[index];
-  front.textContent = c.front;
-  back.textContent  = c.back;
-  levEl.textContent = c.level || 3;
-  cardEl.classList.remove("flipped");
-  if (slider) slider.value = index;
-  counter.textContent = `${index + 1} / ${cards.length}`;
+
+  document.getElementById("front").textContent = c.front;
+  document.getElementById("back").textContent  = c.back;
+  document.getElementById("levelVal").textContent = c.level || 3;
+
+  slider.value = vis.indexOf(index);
+  counter.textContent = `${vis.indexOf(index)+1} / ${vis.length}`;
 }
+
 
 // ---------- ナビ ----------
 function next() {
-  if (cards.length === 0) return;
-
-  const card = document.getElementById("card");
-
-  // 先に表に戻す
-  card.classList.remove("flipped");
-
-  setTimeout(() => {
-    index = (index + 1) % cards.length;
-    show();
-  }, 220); // ← 0.6sアニメの1/3〜1/2くらいでOK
-}
-
-function prev() {
-  if (cards.length === 0) return;
+  const vis = getVisibleIndices();
+  if (vis.length === 0) return;
 
   const card = document.getElementById("card");
   card.classList.remove("flipped");
 
   setTimeout(() => {
-    index = (index - 1 + cards.length) % cards.length;
+    const pos = vis.indexOf(index);
+    const nextPos = (pos + 1) % vis.length;
+    index = vis[nextPos];
     show();
   }, 220);
 }
 
-function findNextVisibleIndex(start) {
-  for (let i=start; i<cards.length; i++) if (filters.has(cards[i].level)) return i;
-  return null;
+function prev() {
+  const vis = getVisibleIndices();
+  if (vis.length === 0) return;
+
+  const card = document.getElementById("card");
+  card.classList.remove("flipped");
+
+  setTimeout(() => {
+    const pos = vis.indexOf(index);
+    const prevPos = (pos - 1 + vis.length) % vis.length;
+    index = vis[prevPos];
+    show();
+  }, 220);
 }
-function findPrevVisibleIndex(start) {
-  for (let i=start; i>=0; i--) if (filters.has(cards[i].level)) return i;
-  return null;
-}
+
 
 // ---------- レベル選択 ----------
 function toggleLevelSelector() {
@@ -561,3 +605,49 @@ async function testLoad() {
     console.error(e);
   }
 }
+
+// ===== 外クリックでポップアップ系を全部閉じる =====
+document.addEventListener("click", (e) => {
+
+  // ---- モーダル系 ----
+  const modals = [
+    { id: "editPopup", close: closeEditPopup },
+    { id: "batchPopup", close: closeBatchEditor },
+    { id: "batchModeModal", close: closeBatchModeModal }
+  ];
+
+  modals.forEach(m => {
+    const el = document.getElementById(m.id);
+    if (!el) return;
+    if (el.style.display === "flex" && e.target === el) {
+      m.close();
+    }
+  });
+
+
+  // ---- レベルセレクタ（カード左下のLvメニュー）----
+  const levelSel = document.getElementById("levelSelector");
+  if (levelSel && levelSel.style.display === "block") {
+
+    if (
+      !e.target.closest("#levelSelector") &&
+      !e.target.closest("#levelBadge")
+    ) {
+      levelSel.style.display = "none";
+    }
+  }
+
+
+  // ---- フィルタパネル（☰メニュー）----
+  const filter = document.getElementById("filterPanel");
+  if (filter && filter.style.display === "block") {
+
+    if (
+      !e.target.closest("#filterPanel") &&
+      !e.target.closest(".icon-small")
+    ) {
+      filter.style.display = "none";
+    }
+  }
+
+});
