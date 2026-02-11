@@ -155,7 +155,6 @@ body {
 .controls { margin-top:12px; display:flex; gap:12px; justify-content:center; }
 button.rounded { background:#fff; border:none; padding:10px 18px; border-radius:14px; box-shadow:0 8px 20px rgba(16,24,40,0.06); cursor:pointer; font-size:16px; }
 button.rounded:hover { transform: translateY(-2px); }
-button.rounded-close { position: relative; left: 180px; background:#fff; ;border:none; padding:10px 18px; border-radius:14px; box-shadow:0 8px 20px rgba(16,24,40,0.06); cursor:pointer; font-size:16px; }
 
 /* スライダー */
 input[type="range"] { height: 40px; border-radius:20px; }
@@ -186,13 +185,34 @@ input[type="range"] { height: 40px; border-radius:20px; }
 }
 .modal.large .modal-content { width: 90%; max-width: 900px; max-height: 80vh; overflow:auto; }
 .modal-content {
+  position: relative;
   background: white;
   padding: 40px;
   border-radius: 16px;
   gap: 10px;
   width: 480px;
   box-shadow: 0 20px 60px rgba(2,6,23,0.2);
+
 }
+/* モーダル右上の × ボタン */
+.modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  border: none;
+  border-radius: 8px;
+  padding: 4px 8px;
+  background: transparent;
+  font-size: 30px;
+  cursor: pointer;
+  line-height: 1;
+  color: #444;
+}
+
+.modal-close:hover {
+  color: #000;
+}
+
 .modal-select{
   border-radius:10px;
   margin: 10px 0px 10px 10px;
@@ -247,6 +267,11 @@ input[type="range"] { height: 40px; border-radius:20px; }
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+
+#batchBottomBar {
+  justify-content: flex-end;
+}
+
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* =========================================
@@ -408,7 +433,11 @@ input[type="range"] { height: 40px; border-radius:20px; }
     overflow-y: auto;
   }
   .modal-textbox {
+    margin-top: 20px;
     width: 100%; /* 幅を親に合わせる */
     box-sizing: border-box;
+  }
+  .modal-close{
+    top: 5px;
   }
 }

@@ -29,6 +29,8 @@ let addMode = false;
 let batchPendingAction = null;
 let batchTargetLevel = null;
 
+let batchSelectBtn = null;
+let batchRunBtn = null;
 
 
 window.addEventListener("DOMContentLoaded", async () => {
@@ -66,6 +68,9 @@ document.addEventListener("keydown", (e) => {
 
 // ---------- UI 初期化 ----------
 function attachUI() {
+  batchSelectBtn = document.getElementById("batchSelectBtn");
+  batchRunBtn = document.getElementById("batchRunBtn");
+
   const cardContainer = document.getElementById("card");
   if (cardContainer) {
   cardContainer.addEventListener("click", (e) => {
@@ -277,6 +282,42 @@ function prev() {
   }, 220);
 }
 
+// ===============================
+// スワイプでカード移動（スマホ）
+// ===============================
+const cardElem = document.getElementById("card");
+
+let touchStartX = 0;
+let touchStartY = 0;
+
+cardElem.addEventListener("touchstart", (e) => {
+  if (isAnyModalOpen()) return; // ← モーダル中は無効
+
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+}, { passive: true });
+
+cardElem.addEventListener("touchend", (e) => {
+  if (isAnyModalOpen()) return;
+
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+
+  // 縦スクロール優先（誤爆防止）
+  if (Math.abs(dy) > Math.abs(dx)) return;
+
+  // スワイプ判定（50px以上）
+  if (dx > 50) {
+    prev();
+  } else if (dx < -50) {
+    next();
+  }
+});
+
+
+
 
 // ---------- レベル選択 ----------
 function toggleLevelSelector() {
@@ -388,14 +429,33 @@ function openBatchEditor() {
   document.getElementById("batchSearch").value = "";
   document.getElementById("batchFilterLevel").value = "";
   renderBatchList();
+  // ボタン表示を初期に戻す（DOM取得が出来るタイミングなので安全）
+  batchSelectBtn = document.getElementById("batchSelectBtn");
+  batchRunBtn = document.getElementById("batchRunBtn");
+  if (batchSelectBtn) batchSelectBtn.textContent = "複数選択";
+  if (batchRunBtn) batchRunBtn.classList.add("hidden");
 }
 function closeBatchEditor() {
   document.getElementById("batchPopup").style.display = "none";
 }
 
+
 function toggleBatchSelectMode() {
-  openBatchModeModal();
+  // まだ選択モードでない → 操作選択モーダルを開いてから選択モードへ入る流れ
+  if (!batchSelectMode) {
+    openBatchModeModal();
+    return;
+  }
+
+  // すでに選択モード → キャンセル（選択を解除して UI 戻す）
+  batchSelectMode = false;
+  batchSelected.clear();
+  if (batchSelectBtn) batchSelectBtn.textContent = "複数選択";
+  if (batchRunBtn) batchRunBtn.classList.add("hidden");
+  renderBatchList();
 }
+
+
 
 function openBatchModeModal() {
   document.getElementById("batchModeModal").style.display = "flex";
@@ -427,10 +487,22 @@ function confirmBatchLevel() {
 }
 
 function enableBatchSelectMode() {
+  console.log("enableBatchSelectMode called");
+
   batchSelectMode = true;
-  batchSelected.clear();
+  batchSelected = new Set();
+
+  if (batchSelectBtn) batchSelectBtn.textContent = "キャンセル";
+  if (batchRunBtn) {
+    batchRunBtn.classList.remove("hidden");
+    console.log("run button shown");
+  } else {
+    console.log("batchRunBtn is NULL");
+  }
+
   renderBatchList();
 }
+
 
 function runBatchAction() {
 
@@ -463,6 +535,10 @@ function runBatchAction() {
 
   renderBatchList();
   applyFiltersAndShow();
+
+  if (batchSelectBtn) batchSelectBtn.textContent = "複数選択";
+  if (batchRunBtn) batchRunBtn.classList.add("hidden");
+
 }
 
 function renderBatchList() {
@@ -651,3 +727,7 @@ document.addEventListener("click", (e) => {
   }
 
 });
+
+function isAnyModalOpen() {
+  return document.querySelector(".modal:not([style*='display:none'])");
+}

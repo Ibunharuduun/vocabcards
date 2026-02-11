@@ -97,6 +97,7 @@
 <!-- 編集ポップアップ -->
 <div id="editPopup" class="modal" style="display:none;">
   <div class="modal-content">
+    <button class="modal-close" onclick="closeEditPopup()">×</button>
     <label>Front<br/>
       <textarea id="editFront" class="modal-textbox"rows="2"></textarea>
     </label>
@@ -111,7 +112,6 @@
     <div class="modal-actions">
       <button class="rounded" onclick="applyEdit()">保存（ローカル）</button>
       <button id="deleteBtn" class="rounded" onclick="deleteCurrentCard()">削除</button>
-      <button class="rounded-close" onclick="closeEditPopup()">閉じる</button>
     </div>
   </div>
 </div>
@@ -130,14 +130,14 @@
         <option value="4">Lv4</option>
         <option value="5">Lv5</option>
       </select>
-      <button class="rounded" style="margin-bottom: 12px;" onclick="toggleBatchSelectMode()">複数選択</button>
+      <button class="modal-close" onclick="closeBatchEditor()">×</button>
     </div>
 
     <div id="batchList" class="batch-list"></div>
 
-    <div style="margin-top:8px; display:flex; gap:8px;">
-      <button class="rounded" onclick="runBatchAction()">選択分を実行</button>
-      <button class="rounded-close" style="left: 650px;"onclick="closeBatchEditor()">閉じる</button>
+    <div id="batchBottomBar" style="margin-top:8px; display:flex; gap:8px;">
+      <button id="batchSelectBtn" class="rounded" onclick="toggleBatchSelectMode()">複数選択</button>
+      <button id="batchRunBtn" class="rounded hidden" onclick="runBatchAction()">選択分を実行</button>
     </div>
   </div>
 </div>
@@ -145,7 +145,7 @@
 <div id="batchModeModal" class="modal" style="display:none;">
   <div class="modal-content">
     <h3>一括操作</h3>
-
+    <button class="modal-close" onclick="closeBatchModeModal()">×</button>
     <button class="rounded" onclick="startBatchLevel()">レベル一括変更</button>
     <button class="rounded" onclick="startBatchDelete()">一括削除</button>
 
@@ -159,8 +159,6 @@
       </select>
       <button class="rounded" onclick="confirmBatchLevel()">このレベルにする</button>
     </div>
-
-    <button class="rounded" onclick="closeBatchModeModal()">キャンセル</button>
   </div>
 </div>
 
