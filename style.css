@@ -104,8 +104,9 @@ body {
   flex-direction: column;
 }
 
-.face .face-top { display:flex; justify-content:flex-end; }
-.icon-small { background: transparent; border: none; font-size:18px; cursor:pointer; padding:6px; border-radius:10px; }
+.face .face-top { display:flex; justify-content:flex-end; position: relative;}
+.icon-small { background: transparent; border: none; font-size:20px; cursor:pointer; padding:8px; border-radius:10px; }
+.filter { position: absolute; top: 8px; left:8px; z-index: 5; pointer-events: auto; background: transparent; border: none; font-size:20px; cursor:pointer; padding:8px; border-radius:10px;  }
 
 .face-content {
   flex:1;
@@ -163,9 +164,9 @@ input[type="range"] { height: 40px; border-radius:20px; }
 /* フィルタパネル */
 .panel {
   position: absolute;
-  top: 20px;
-  right: 80px;
-  width: 80px;
+  top: 30px;
+  left: 60px;
+  width: 70px;
   background: white;
   padding: 10px;
   border-radius: 12px;

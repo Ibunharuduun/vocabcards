@@ -37,8 +37,8 @@ window.addEventListener("DOMContentLoaded", async () => {
   slider  = document.getElementById("cardSlider");
   counter = document.getElementById("cardCount");
   attachUI();
-  await preloadAll();
   await loadSet(0);
+  preloadAll();
 });
 
 document.addEventListener("keydown", (e) => {
@@ -682,8 +682,11 @@ function toggleMenu(el) {
 function toggleFilterPanel() {
   const el = document.getElementById("filterPanel");
   if (!el) return;
-  el.style.display = (el.style.display === "block") ? "none" : "block";
+
+  const isOpen = getComputedStyle(el).display !== "none";
+  el.style.display = isOpen ? "none" : "block";
 }
+
 
 // テスト用（コンソールで回す）
 async function testLoad() {
@@ -734,7 +737,7 @@ document.addEventListener("click", (e) => {
 
     if (
       !e.target.closest("#filterPanel") &&
-      !e.target.closest(".icon-small")
+      !e.target.closest(".icon-small, .filter")
     ) {
       filter.style.display = "none";
     }
