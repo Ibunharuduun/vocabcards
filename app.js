@@ -142,10 +142,8 @@ async function preloadAll() {
 
 // ---------- シート切替（別シートに移るとローカル変更は破棄する仕様） ----------
 async function changeSheet(id) {
-  // id は数値または文字列
   if (dirty) {
-    // 仕様で破棄する。必要ならここで confirm を入れる実装も可能。
-    dirty = false;
+    await saveAll();
   }
   await loadSet(id);
 }
@@ -616,7 +614,7 @@ function renderBatchList() {
 
 // ---------- 保存（GAS へ一括送信） ----------
 async function saveAll() {
-  if (!dirty) { alert("保存する変更はありません"); return; }
+  if (!dirty) return; 
   const sheet = SHEETS[currentSetId];
   showLoading();
   try {
@@ -626,7 +624,6 @@ async function saveAll() {
     if (res && (res.status === "success" || res.status === "ok" || res.status === "done")) {
       dirty = false;
       cache[currentSetId] = cards.map(c=>({...c}));
-      alert("保存しました");
     } else {
       console.warn("saveAll: unexpected response", res);
       alert("保存は完了しましたが、サーバー応答が不定です（詳細はコンソール）。");
