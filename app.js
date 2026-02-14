@@ -182,7 +182,7 @@ async function loadSet(id) {
     applyFiltersAndShow();
   } catch (err) {
     console.error("loadSet error:", err);
-    alert("読み込みに失敗しました: " + (err.message || err));
+    alert("Failed to load set: " + (err.message || err));
   } finally {
     hideLoading();
   }
@@ -198,7 +198,7 @@ function applyFiltersAndShow() {
   const vis = getVisibleIndices();
 
   if (vis.length === 0) {
-    document.getElementById("front").textContent = "(表示するカードがありません)";
+    document.getElementById("front").textContent = "(No cards match the filter)";
     document.getElementById("back").textContent = "";
     counter.textContent = `0 / 0`;
     slider.max = 0;
@@ -430,7 +430,7 @@ function openBatchEditor() {
   // ボタン表示を初期に戻す（DOM取得が出来るタイミングなので安全）
   batchSelectBtn = document.getElementById("batchSelectBtn");
   batchRunBtn = document.getElementById("batchRunBtn");
-  if (batchSelectBtn) batchSelectBtn.textContent = "複数選択";
+  if (batchSelectBtn) batchSelectBtn.textContent = "Multi-select";
   if (batchRunBtn) batchRunBtn.classList.add("hidden");
 }
 function closeBatchEditor() {
@@ -448,7 +448,7 @@ function toggleBatchSelectMode() {
   // すでに選択モード → キャンセル（選択を解除して UI 戻す）
   batchSelectMode = false;
   batchSelected.clear();
-  if (batchSelectBtn) batchSelectBtn.textContent = "複数選択";
+  if (batchSelectBtn) batchSelectBtn.textContent = "Multi-select";
   if (batchRunBtn) batchRunBtn.classList.add("hidden");
   renderBatchList();
 }
@@ -461,8 +461,16 @@ function openBatchModeModal() {
 
 function closeBatchModeModal() {
   document.getElementById("batchModeModal").style.display = "none";
+
+  // ボタンを戻す
+  document.querySelectorAll(
+    "#batchModeModal > .modal-content > .rounded"
+  ).forEach(btn => btn.classList.remove("hidden"));
+
+  // レベル指定UIを隠す
   document.getElementById("batchLevelChooser").style.display = "none";
 }
+
 
 function startBatchDelete() {
   batchPendingAction = "delete";
@@ -471,7 +479,12 @@ function startBatchDelete() {
 }
 
 function startBatchLevel() {
-  batchPendingAction = "level";
+  // アクション選択ボタンを隠す
+   document.querySelectorAll(
+    "#batchModeModal > .modal-content > .rounded"
+  ).forEach(btn => btn.classList.add("hidden"));
+
+  // レベル指定UIを表示
   document.getElementById("batchLevelChooser").style.display = "block";
 }
 
@@ -490,7 +503,7 @@ function enableBatchSelectMode() {
   batchSelectMode = true;
   batchSelected = new Set();
 
-  if (batchSelectBtn) batchSelectBtn.textContent = "キャンセル";
+  if (batchSelectBtn) batchSelectBtn.textContent = "Cancel";
   if (batchRunBtn) {
     batchRunBtn.classList.remove("hidden");
     console.log("run button shown");
@@ -505,7 +518,7 @@ function enableBatchSelectMode() {
 function runBatchAction() {
 
   if (batchSelected.size === 0) {
-    alert("カードを選択してください");
+    alert("No cards selected.");
     return;
   }
 
@@ -513,7 +526,7 @@ function runBatchAction() {
 
   if (batchPendingAction === "delete") {
 
-    if (!confirm("削除しますか？")) return;
+    if (!confirm("Delete selected cards?")) return;
     targets.forEach(i => cards.splice(i,1));
 
   }
@@ -534,7 +547,7 @@ function runBatchAction() {
   renderBatchList();
   applyFiltersAndShow();
 
-  if (batchSelectBtn) batchSelectBtn.textContent = "複数選択";
+  if (batchSelectBtn) batchSelectBtn.textContent = "Multi-select";
   if (batchRunBtn) batchRunBtn.classList.add("hidden");
 
 }
@@ -614,27 +627,30 @@ function renderBatchList() {
 
 // ---------- 保存（GAS へ一括送信） ----------
 async function saveAll() {
-  if (!dirty) return; 
-  const sheet = SHEETS[currentSetId];
+  if (!dirty) return;
+
   showLoading();
   try {
+    const sheet = SHEETS[currentSetId];
     const payload = cards.map(c => [c.front, c.back, c.level]);
     const res = await saveToGAS(sheet, payload);
-    // GAS の戻り値は環境によって {status: "success"} や {status: "ok"} などあり得るため寛容に扱う
+
     if (res && (res.status === "success" || res.status === "ok" || res.status === "done")) {
       dirty = false;
-      cache[currentSetId] = cards.map(c=>({...c}));
+      cache[currentSetId] = cards.map(c => ({ ...c }));
+      // ← 成功時は何も表示しない
     } else {
-      console.warn("saveAll: unexpected response", res);
-      alert("保存は完了しましたが、サーバー応答が不定です（詳細はコンソール）。");
+      throw new Error("unexpected response");
     }
+
   } catch (e) {
-    console.error("saveAll error:", e);
-    alert("保存に失敗しました: " + (e.message || e));
+    alert("Failed to save: " + (e.message || e));
   } finally {
     hideLoading();
   }
 }
+
+
 
 async function saveToGAS(sheet, data) {
   const res = await fetch(GAS_URL, {
@@ -726,5 +742,6 @@ document.addEventListener("click", (e) => {
 });
 
 function isAnyModalOpen() {
-  return document.querySelector(".modal:not([style*='display:none'])");
+  return Array.from(document.querySelectorAll(".modal"))
+    .some(m => getComputedStyle(m).display !== "none");
 }
