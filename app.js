@@ -141,7 +141,7 @@ async function preloadAll() {
 }
 
 
-// ---------- シート切替（別シートに移るとローカル変更は破棄する仕様） ----------
+// ---------- シート切替（別シートに移るとローカル変更を保存） ----------
 async function changeSheet(id) {
   if (dirty) {
     await saveAll();
