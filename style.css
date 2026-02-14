@@ -420,7 +420,7 @@ input[type="range"] { height: 40px; border-radius:20px; }
   }
 
   .icon-small {font-size:25px;}
-  .filter {font-size:25px;}
+  .filter {left:20px;font-size:25px;}
   
 
   /* スライダーとカウンター */
