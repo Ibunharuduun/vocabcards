@@ -413,8 +413,9 @@ input[type="range"] { height: 40px; border-radius:20px; }
 
   /* カード内の文字サイズ調整 */
   .face-content {
-    font-size: 30px; /* スマホ用に少し小さく */
+    font-size: 25px; /* スマホ用に少し小さく */
     padding: 10px;
+    font-family:"メイリオ";
   }
 
   .icon-small {font-size:25px;}
