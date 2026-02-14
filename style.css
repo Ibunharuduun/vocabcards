@@ -25,6 +25,7 @@ body {
   cursor: pointer;
   border-radius: 10px;
   margin-bottom: 6px;
+  font-family:"メイリオ";
 }
 
 .menu-children {
