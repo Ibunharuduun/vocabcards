@@ -347,7 +347,7 @@ input[type="range"] { height: 40px; border-radius:20px; }
     position: fixed;
     top: auto;    /* 上部固定を解除 */
     right: auto;
-    bottom: 0;    /* 下部に固定 */
+    bottom: 15px;    /* 下部に固定 */
     left: 0;
     width: 100%;
     height: 90px;
