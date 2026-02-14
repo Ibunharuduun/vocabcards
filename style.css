@@ -308,7 +308,7 @@ input[type="range"] { height: 40px; border-radius:20px; }
     align-items: flex-start;
     overflow-x: auto; /* 横スクロール許可 */
     white-space: nowrap;
-    padding: 10px;
+    padding: 15px;
     gap: 10px;
   }
 
@@ -325,7 +325,7 @@ input[type="range"] { height: 40px; border-radius:20px; }
   .menu-parent {
     margin: 0;
     padding: 8px 12px;
-    font-size: 14px;
+    font-size: 20px;
   }
 
   /* 子メニュー（展開時）のデザイン調整 */
@@ -335,7 +335,7 @@ input[type="range"] { height: 40px; border-radius:20px; }
     padding-left: 10px;
   }
   .menu-item {
-    font-size: 13px;
+    font-size: 17px;
     padding: 8px;
   }
 
@@ -349,8 +349,8 @@ input[type="range"] { height: 40px; border-radius:20px; }
     bottom: 0;    /* 下部に固定 */
     left: 0;
     width: 100%;
-    height: 70px;
-    background: white;
+    height: 90px;
+    background: #161e2d2e;
     box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
     z-index: 1000;
 
@@ -366,12 +366,12 @@ input[type="range"] { height: 40px; border-radius:20px; }
     position: static;
     transform: none;
     box-shadow: none;
-    background: transparent;
+    background: #ffffff;
     color: #333;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 15px;
     border: 1px solid #eee;
-    padding: 10px 20px;
+    padding: 20px 20px;
     width: 40%; /* 幅を広めに */
   }
 
@@ -380,9 +380,9 @@ input[type="range"] { height: 40px; border-radius:20px; }
     position: static; /* 固定解除 */
     margin: 0;
     border-radius: 12px;
-    padding: 12px 20px;
+    padding: 20px 20px;
     width: 40%;
-    font-size: 14px;
+    font-size: 15px;
     box-shadow: none;
   }
 
@@ -413,9 +413,12 @@ input[type="range"] { height: 40px; border-radius:20px; }
 
   /* カード内の文字サイズ調整 */
   .face-content {
-    font-size: 22px; /* スマホ用に少し小さく */
+    font-size: 30px; /* スマホ用に少し小さく */
     padding: 10px;
   }
+
+  .icon-small {font-size:25px;}
+  .filter {font-size:25px;}
   
 
   /* スライダーとカウンター */
