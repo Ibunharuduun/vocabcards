@@ -106,7 +106,7 @@ body {
 
 .face .face-top { display:flex; justify-content:flex-end; position: relative;}
 .icon-small { background: transparent; border: none; font-size:20px; cursor:pointer; padding:8px; border-radius:10px; }
-.filter { position: absolute; top: 8px; left:8px; z-index: 5; pointer-events: auto; background: transparent; border: none; font-size:20px; cursor:pointer; padding:8px; border-radius:10px;  }
+.filter { position: absolute; left:8px; z-index: 5; pointer-events: auto; background: transparent; border: none; font-size:20px; cursor:pointer; padding:8px; border-radius:10px;  }
 
 .face-content {
   flex:1;
@@ -416,6 +416,7 @@ input[type="range"] { height: 40px; border-radius:20px; }
     font-size: 22px; /* スマホ用に少し小さく */
     padding: 10px;
   }
+  
 
   /* スライダーとカウンター */
   input[type="range"] {
