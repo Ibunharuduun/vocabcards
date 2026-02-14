@@ -111,34 +111,35 @@ async function preloadAll() {
   showLoading();
   try {
     const entries = Object.entries(SHEETS);
-    for (const [id, sheet] of entries) {
-      if (cache[id]) continue;
+
+    await Promise.all(entries.map(async ([id, sheet]) => {
+      if (cache[id]) return;
+
       try {
         const res = await fetch(`${GAS_URL}?id=${encodeURIComponent(sheet)}`);
         if (!res.ok) {
-          console.warn(`preload: ${sheet} fetch failed status=${res.status}`);
           cache[id] = [];
-          continue;
+          return;
         }
         const json = await res.json();
-        const rows = Array.isArray(json) ? json : (json && json.data ? json.data : []);
+        const rows = Array.isArray(json) ? json : (json?.data ?? []);
         cache[id] = rows
           .filter(r => Array.isArray(r) && r.length >= 2)
           .map((r,i) => ({
             id: i+1,
             front: String(r[0] || ""),
             back: String(r[1] || ""),
-            level: (r.length >= 3 && !isNaN(Number(r[2]))) ? Number(r[2]) : 3
+            level: Number(r[2]) || 3
           }));
-      } catch (e) {
-        console.error("preload error for sheet:", sheet, e);
+      } catch {
         cache[id] = [];
       }
-    }
+    }));
   } finally {
     hideLoading();
   }
 }
+
 
 // ---------- シート切替（別シートに移るとローカル変更は破棄する仕様） ----------
 async function changeSheet(id) {
