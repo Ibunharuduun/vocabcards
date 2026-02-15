@@ -50,12 +50,12 @@
         <label><input type="checkbox" class="filterCheckbox" data-lv="4" checked /> Lv4</label><br/>
         <label><input type="checkbox" class="filterCheckbox" data-lv="5" checked /> Lv5</label>
       </div>
+      <button class="filter no-flip" onclick="toggleFilterPanel()">☰</button> 
       <div class="card-inner" id="cardInner">
         <div class="face front">
           <div class="face-top">
             <button class="icon-small no-flip" onclick="addNewCard()">＋</button>
-            <button class="icon-small no-flip" id="editBtn" title="Edit" onclick="openEditPopup()">🖊</button>
-            <button class="filter no-flip" onclick="toggleFilterPanel()">☰</button>           
+            <button class="icon-small no-flip" id="editBtn" title="Edit" onclick="openEditPopup()">🖊</button>                      
           </div>
           <div class="face-content" id="front"></div>
           <div class="face-bottom">
@@ -72,9 +72,9 @@
 
         <div class="face back">
           <div class="face-top">
-            <button class="icon-small no-flip" id="editBtnBack" title="Edit" onclick="openEditPopup()">🖊️</button>
+            <button class="icon-small no-flip" id="editBtnBack" title="Edit" onclick="openEditPopup()">🖊</button>
           </div>
-          <div class="face-content" style="bottom:10px;" id="back"></div>
+          <div class="face-content" id="back"></div>
         </div>
       </div>
     </div>

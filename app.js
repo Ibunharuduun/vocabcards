@@ -680,6 +680,10 @@ function toggleMenu(el) {
 }
 
 function toggleFilterPanel() {
+  const card = document.getElementById("card");
+  if (!card) return;
+  if (card.classList.contains("flipped")) return;// 裏面で開かせない
+
   const el = document.getElementById("filterPanel");
   if (!el) return;
 
@@ -737,7 +741,7 @@ document.addEventListener("click", (e) => {
 
     if (
       !e.target.closest("#filterPanel") &&
-      !e.target.closest(".icon-small, .filter")
+      !e.target.closest(".icon-small,.filter")
     ) {
       filter.style.display = "none";
     }

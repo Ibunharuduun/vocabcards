@@ -25,7 +25,7 @@ body {
   cursor: pointer;
   border-radius: 10px;
   margin-bottom: 6px;
-  font-family:"メイリオ";
+  font-family:"Helvetica Neue", Arial, "Hiragino Mincho ProN", "YuMincho", "Hiragino Mincho Pro", "Yu Mincho", serif;
 }
 
 .menu-children {
@@ -107,7 +107,15 @@ body {
 
 .face .face-top { display:flex; justify-content:flex-end; position: relative;}
 .icon-small { background: transparent; border: none; font-size:20px; cursor:pointer; padding:8px; border-radius:10px; }
-.filter { position: absolute; left:8px; z-index: 5; pointer-events: auto; background: transparent; border: none; font-size:20px; cursor:pointer; padding:8px; border-radius:10px;  }
+.filter { position: absolute; top: 15px; left:15px; z-index: 5; transition: opacity 0.01s ease; pointer-events: auto; background: transparent; border: none; font-size:20px; cursor:pointer; padding:8px; border-radius:10px;  }
+.card.flipped > .filter {
+  opacity: 0;
+  pointer-events: none;
+}
+.card:not(.flipped) > .filter {
+  transition-delay: 0.55s;
+}
+
 
 .face-content {
   flex:1;
@@ -122,6 +130,7 @@ body {
 
 /* back face style */
 .back { transform: rotateY(180deg); background: linear-gradient(180deg,#eef3ff,#f0f7ff); }
+.back .face-content { margin-bottom:40px; margin-left:10px; }
 
 /* bottom controls inside card */
 .face-bottom { display:flex; justify-content:flex-end; gap:10px; align-items:center; margin-top:8px; position:relative; }
@@ -227,7 +236,7 @@ input[type="range"] { height: 40px; border-radius:20px; }
   height: 70px;
   resize: none;
   font-size: 18px;
-  font-family:"メイリオ";
+  font-family:"Helvetica Neue", Arial, "Hiragino Mincho ProN", "YuMincho", "Hiragino Mincho Pro", "Yu Mincho", serif;
   border-radius: 15px;
   padding: 10px;
 }
@@ -414,7 +423,8 @@ input[type="range"] { height: 40px; border-radius:20px; }
   .face-content {
     font-size: 25px; /* スマホ用に少し小さく */
     padding: 10px;
-    font-family:"メイリオ";
+    font-family:"Helvetica Neue", Arial, "Hiragino Mincho ProN", "YuMincho", "Hiragino Mincho Pro", "Yu Mincho", serif;
+;
   }
 
   .icon-small {font-size:25px;}
