@@ -5,9 +5,10 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycby-mknctB0oetIWm23X2o-O
 const SHEETS = {
   0: "eng1",
   1: "eng2",
-  2: "eng3",
-  3: "old1",
-  4: "old2"
+  2: "new_leap_diff",
+  3: "teppeki_diff",
+  4: "old1",
+  5: "old2"
 };
 
 const LOCAL_CACHE_KEY = "vocabcards-cache-v1";

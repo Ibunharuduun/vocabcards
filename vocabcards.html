@@ -16,15 +16,16 @@
     <div class="menu-children">
       <div class="menu-item" onclick="changeSheet(0)">和訳</div>
       <div class="menu-item" onclick="changeSheet(1)">英訳</div>
-      <div class="menu-item" onclick="changeSheet(2)">難語</div>
+      <div class="menu-item" onclick="changeSheet(2)">新リープ</div>
+      <div class="menu-item" onclick="changeSheet(3)">鉄壁</div>
     </div>
   </div>
 
   <div class="menu-group">
     <div class="menu-parent" onclick="toggleMenu(this)">▸古典</div>
     <div class="menu-children">
-      <div class="menu-item" onclick="changeSheet(3)">古文</div>
-      <div class="menu-item" onclick="changeSheet(4)">漢文</div>
+      <div class="menu-item" onclick="changeSheet(4)">古文</div>
+      <div class="menu-item" onclick="changeSheet(5)">漢文</div>
     </div>
   </div>
 </div>
@@ -110,8 +111,8 @@
       </select>
     </label>
     <div class="modal-actions">
-      <button class="rounded" onclick="applyEdit()">Apply</button>
       <button id="deleteBtn" class="rounded" onclick="deleteCurrentCard()">Delete</button>
+      <button class="rounded" onclick="applyEdit()">Apply</button>
     </div>
   </div>
 </div>
