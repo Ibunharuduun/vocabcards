@@ -120,7 +120,7 @@
 <div id="batchPopup" class="modal large" style="display:none;">
   <div class="modal-content">
     <h3>Batch Edit</h3>
-    <div style="display:flex; gap:8px;  margin-bottom:0px;">
+    <div class="batch-toolbar">
       <input id="batchSearch" placeholder="Search (Front/Back)" class="patch_bar" oninput="renderBatchList()" />
       <select id="batchFilterLevel" class="patch_bar" onchange="renderBatchList()">
         <option value="">All Levels</option>
@@ -130,12 +130,15 @@
         <option value="4">Lv4</option>
         <option value="5">Lv5</option>
       </select>
+      <button class="rounded batch-tool-btn" onclick="clearBatchFilters()">Clear</button>
       <button class="modal-close" onclick="closeBatchEditor()">×</button>
     </div>
+    <div id="batchMeta" class="batch-meta"></div>
 
     <div id="batchList" class="batch-list"></div>
 
-    <div id="batchBottomBar" style="margin-top:8px; display:flex; gap:8px;">
+    <div id="batchBottomBar">
+      <button id="batchSelectVisibleBtn" class="rounded hidden" onclick="toggleSelectVisible()">Select visible</button>
       <button id="batchSelectBtn" class="rounded" onclick="toggleBatchSelectMode()">Multi-select</button>
       <button id="batchRunBtn" class="rounded hidden" onclick="runBatchAction()">Apply to selected</button>
     </div>

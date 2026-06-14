@@ -10,6 +10,9 @@ const SHEETS = {
   4: "old2"
 };
 
+const LOCAL_CACHE_KEY = "vocabcards-cache-v1";
+const LOCAL_DIRTY_KEY = "vocabcards-dirty-v1";
+
 // アプリ状態
 let currentSetId = 0;
 let cards = []; // {id, front, back, level}
@@ -31,13 +34,17 @@ let batchTargetLevel = null;
 
 let batchSelectBtn = null;
 let batchRunBtn = null;
+let batchSelectVisibleBtn = null;
 
 
 window.addEventListener("DOMContentLoaded", async () => {
   slider  = document.getElementById("cardSlider");
   counter = document.getElementById("cardCount");
   attachUI();
+  loadLocalCache();
+  const hadInitialCache = Boolean(cache["0"]);
   await loadSet(0);
+  if (hadInitialCache) refreshSet(0, { updateCurrent: true });
   preloadAll();
 });
 
@@ -70,6 +77,7 @@ document.addEventListener("keydown", (e) => {
 function attachUI() {
   batchSelectBtn = document.getElementById("batchSelectBtn");
   batchRunBtn = document.getElementById("batchRunBtn");
+  batchSelectVisibleBtn = document.getElementById("batchSelectVisibleBtn");
 
   const cardContainer = document.getElementById("card");
   if (cardContainer) {
@@ -107,37 +115,81 @@ function attachUI() {
 
 
 // ---------- データ読み込み（プリロード） ----------
-async function preloadAll() {
-  showLoading();
-  try {
-    const entries = Object.entries(SHEETS);
-
-    await Promise.all(entries.map(async ([id, sheet]) => {
-      if (cache[id]) return;
-
-      try {
-        const res = await fetch(`${GAS_URL}?id=${encodeURIComponent(sheet)}`);
-        if (!res.ok) {
-          cache[id] = [];
-          return;
-        }
-        const json = await res.json();
-        const rows = Array.isArray(json) ? json : (json?.data ?? []);
-        cache[id] = rows
-          .filter(r => Array.isArray(r) && r.length >= 2)
-          .map((r,i) => ({
-            id: i+1,
-            front: String(r[0] || ""),
-            back: String(r[1] || ""),
-            level: Number(r[2]) || 3
-          }));
-      } catch {
-        cache[id] = [];
-      }
+function normalizeRows(rows) {
+  return rows
+    .filter(r => Array.isArray(r) && r.length >= 2)
+    .map((r,i) => ({
+      id: i+1,
+      front: String(r[0] || ""),
+      back: String(r[1] || ""),
+      level: (r.length >= 3 && !isNaN(Number(r[2]))) ? Number(r[2]) : 3
     }));
-  } finally {
-    hideLoading();
+}
+
+function cloneCards(list) {
+  return list.map(c => ({ ...c }));
+}
+
+function loadLocalCache() {
+  try {
+    const raw = localStorage.getItem(LOCAL_CACHE_KEY);
+    dirty = localStorage.getItem(LOCAL_DIRTY_KEY) === "1";
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return;
+
+    cache = {};
+    Object.keys(SHEETS).forEach(id => {
+      if (Array.isArray(parsed[id])) {
+        cache[id] = cloneCards(parsed[id]);
+      }
+    });
+  } catch (e) {
+    console.warn("Failed to load local cache:", e);
   }
+}
+
+function saveLocalCache() {
+  try {
+    localStorage.setItem(LOCAL_CACHE_KEY, JSON.stringify(cache));
+    localStorage.setItem(LOCAL_DIRTY_KEY, dirty ? "1" : "0");
+  } catch (e) {
+    console.warn("Failed to save local cache:", e);
+  }
+}
+
+async function fetchSheetCards(id) {
+  const sheet = SHEETS[id];
+  const res = await fetch(`${GAS_URL}?id=${encodeURIComponent(sheet)}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+  const json = await res.json();
+  const rows = Array.isArray(json) ? json : (json && json.data ? json.data : []);
+  return normalizeRows(rows);
+}
+
+async function refreshSet(id, options = {}) {
+  const setId = String(id);
+
+  try {
+    const freshCards = await fetchSheetCards(setId);
+    cache[setId] = cloneCards(freshCards);
+    saveLocalCache();
+
+    if (options.updateCurrent && currentSetId === setId && !dirty) {
+      cards = cloneCards(freshCards);
+      index = Math.min(index, Math.max(cards.length - 1, 0));
+      slider.max = Math.max(cards.length - 1, 0);
+      applyFiltersAndShow();
+    }
+  } catch (e) {
+    console.warn("Failed to refresh set:", e);
+  }
+}
+
+async function preloadAll() {
+  const entries = Object.keys(SHEETS).filter(id => id !== currentSetId);
+  await Promise.all(entries.map(id => refreshSet(id)));
 }
 
 
@@ -146,10 +198,22 @@ async function changeSheet(id) {
   if (dirty) {
     await saveAll();
   }
+  const hadCachedSet = Boolean(cache[String(id)]);
   await loadSet(id);
+  if (hadCachedSet) refreshSet(id, { updateCurrent: true });
 }
 
 async function loadSet(id) {
+  currentSetId = String(id);
+  if (cache[currentSetId]) {
+    cards = cloneCards(cache[currentSetId]);
+    index = 0;
+    slider.max = Math.max(cards.length - 1, 0);
+    slider.value = 0;
+    applyFiltersAndShow();
+    return;
+  }
+
   showLoading();
   try {
     currentSetId = String(id);
@@ -176,7 +240,8 @@ async function loadSet(id) {
         back: String(r[1] || ""),
         level: (r.length >= 3 && !isNaN(Number(r[2]))) ? Number(r[2]) : 3
       }));
-    cache[currentSetId] = cards.map(c => ({...c}));
+    cache[currentSetId] = cloneCards(cards);
+    saveLocalCache();
     index = 0;
     slider.max = Math.max(cards.length - 1, 0);
     slider.value = 0;
@@ -326,12 +391,22 @@ function toggleLevelSelector() {
 }
 function setCardLevel(lv) {
   if (!cards[index]) return;
+  const prevVisible = getVisibleIndices();
+  const prevPos = prevVisible.indexOf(index);
+
   cards[index].level = lv;
   dirty = true;
   document.getElementById("levelVal").textContent = lv;
   const sel = document.getElementById("levelSelector");
   if (sel) sel.style.display = "none";
-  cache[currentSetId] = cards.map(c=>({...c}));
+  cache[currentSetId] = cloneCards(cards);
+  saveLocalCache();
+
+  const nextVisible = getVisibleIndices();
+  if (nextVisible.length > 0 && !nextVisible.includes(index)) {
+    index = nextVisible[Math.min(Math.max(prevPos, 0), nextVisible.length - 1)];
+  }
+
   show();
 }
 
@@ -399,7 +474,8 @@ function applyEdit() {
   }
 
   dirty = true;
-  cache[currentSetId] = cards.map(c => ({...c}));
+  cache[currentSetId] = cloneCards(cards);
+  saveLocalCache();
 
   closeEditPopup();
   applyFiltersAndShow();   // フィルタ対応してるならこれ
@@ -414,7 +490,8 @@ function deleteCurrentCard() {
   cards.splice(index, 1);
   cards.forEach((c,i)=>c.id = i+1);
   dirty = true;
-  cache[currentSetId] = cards.map(c=>({...c}));
+  cache[currentSetId] = cloneCards(cards);
+  saveLocalCache();
   closeEditPopup();
   if (index >= cards.length) index = Math.max(cards.length - 1, 0);
   applyFiltersAndShow();
@@ -427,15 +504,81 @@ function openBatchEditor() {
   document.getElementById("batchPopup").style.display = "flex";
   document.getElementById("batchSearch").value = "";
   document.getElementById("batchFilterLevel").value = "";
-  renderBatchList();
   // ボタン表示を初期に戻す（DOM取得が出来るタイミングなので安全）
   batchSelectBtn = document.getElementById("batchSelectBtn");
   batchRunBtn = document.getElementById("batchRunBtn");
-  if (batchSelectBtn) batchSelectBtn.textContent = "Multi-select";
-  if (batchRunBtn) batchRunBtn.classList.add("hidden");
+  batchSelectVisibleBtn = document.getElementById("batchSelectVisibleBtn");
+  updateBatchActionBar();
+  renderBatchList();
 }
 function closeBatchEditor() {
   document.getElementById("batchPopup").style.display = "none";
+}
+
+function getBatchVisibleIndices() {
+  const q = (document.getElementById("batchSearch").value || "").trim().toLowerCase();
+  const levelFilter = document.getElementById("batchFilterLevel").value;
+
+  return cards
+    .map((c, i) => ({ c, i }))
+    .filter(({ c }) => !levelFilter || String(c.level) === levelFilter)
+    .filter(({ c }) => {
+      if (!q) return true;
+      return `${c.front} ${c.back}`.toLowerCase().includes(q);
+    })
+    .map(({ i }) => i);
+}
+
+function getBatchActionName() {
+  if (batchPendingAction === "delete") return "Delete";
+  if (batchPendingAction === "level") return `Set Lv${batchTargetLevel}`;
+  return "Apply";
+}
+
+function updateBatchActionBar(visibleCount = getBatchVisibleIndices().length) {
+  if (batchSelectBtn) batchSelectBtn.textContent = batchSelectMode ? "Cancel" : "Multi-select";
+
+  if (batchRunBtn) {
+    batchRunBtn.textContent = `${getBatchActionName()} (${batchSelected.size})`;
+    batchRunBtn.classList.toggle("hidden", !batchSelectMode);
+    batchRunBtn.disabled = batchSelected.size === 0;
+  }
+
+  if (batchSelectVisibleBtn) {
+    batchSelectVisibleBtn.classList.toggle("hidden", !batchSelectMode);
+    batchSelectVisibleBtn.disabled = visibleCount === 0;
+  }
+}
+
+function clearBatchFilters() {
+  document.getElementById("batchSearch").value = "";
+  document.getElementById("batchFilterLevel").value = "";
+  renderBatchList();
+}
+
+function openCardFromList(cardIndex) {
+  const card = cards[cardIndex];
+  if (card) {
+    filters.add(card.level);
+    const cb = document.querySelector(`.filterCheckbox[data-lv="${card.level}"]`);
+    if (cb) cb.checked = true;
+  }
+
+  index = cardIndex;
+  closeBatchEditor();
+  applyFiltersAndShow();
+}
+
+function toggleSelectVisible() {
+  const visible = getBatchVisibleIndices();
+  const allVisibleSelected = visible.length > 0 && visible.every(i => batchSelected.has(i));
+
+  visible.forEach(i => {
+    if (allVisibleSelected) batchSelected.delete(i);
+    else batchSelected.add(i);
+  });
+
+  renderBatchList();
 }
 
 
@@ -449,8 +592,7 @@ function toggleBatchSelectMode() {
   // すでに選択モード → キャンセル（選択を解除して UI 戻す）
   batchSelectMode = false;
   batchSelected.clear();
-  if (batchSelectBtn) batchSelectBtn.textContent = "Multi-select";
-  if (batchRunBtn) batchRunBtn.classList.add("hidden");
+  updateBatchActionBar();
   renderBatchList();
 }
 
@@ -499,18 +641,9 @@ function confirmBatchLevel() {
 }
 
 function enableBatchSelectMode() {
-  console.log("enableBatchSelectMode called");
-
   batchSelectMode = true;
   batchSelected = new Set();
-
-  if (batchSelectBtn) batchSelectBtn.textContent = "Cancel";
-  if (batchRunBtn) {
-    batchRunBtn.classList.remove("hidden");
-    console.log("run button shown");
-  } else {
-    console.log("batchRunBtn is NULL");
-  }
+  updateBatchActionBar();
 
   renderBatchList();
 }
@@ -544,45 +677,68 @@ function runBatchAction() {
   batchPendingAction = null;
 
   dirty = true;
+  cache[currentSetId] = cloneCards(cards);
+  saveLocalCache();
 
   renderBatchList();
   applyFiltersAndShow();
-
-  if (batchSelectBtn) batchSelectBtn.textContent = "Multi-select";
-  if (batchRunBtn) batchRunBtn.classList.add("hidden");
+  updateBatchActionBar();
 
 }
 
 function renderBatchList() {
   const container = document.getElementById("batchList");
-  const q = (document.getElementById("batchSearch").value || "").toLowerCase();
-  const levelFilter = document.getElementById("batchFilterLevel").value;
+  const meta = document.getElementById("batchMeta");
+  const visibleIndices = getBatchVisibleIndices();
 
   container.innerHTML = "";
 
-  cards.forEach((c,i) => {
+  if (meta) {
+    const selectedText = batchSelectMode ? ` / ${batchSelected.size} selected` : "";
+    meta.textContent = `${visibleIndices.length} / ${cards.length} cards${selectedText}`;
+  }
 
-    if (levelFilter && String(c.level) !== levelFilter) return;
-    if (q && !(c.front + c.back).toLowerCase().includes(q)) return;
+  if (visibleIndices.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "batch-empty";
+    empty.textContent = "No cards found.";
+    container.appendChild(empty);
+    updateBatchActionBar(0);
+    return;
+  }
+
+  visibleIndices.forEach(i => {
+    const c = cards[i];
 
     const row = document.createElement("div");
     row.className = "batch-row";
+    if (batchSelectMode) row.classList.add("selecting");
+    if (i === index) row.classList.add("current");
 
     // --- checkbox ---
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
+    checkbox.className = "batch-check";
     checkbox.style.display = batchSelectMode ? "block" : "none";
     checkbox.checked = batchSelected.has(i);
     checkbox.onchange = e => {
       if (e.target.checked) batchSelected.add(i);
       else batchSelected.delete(i);
       e.stopPropagation();
+      updateBatchActionBar(visibleIndices.length);
+      renderBatchList();
     };
 
     // --- 番号 ---
     const num = document.createElement("div");
     num.className = "num";
     num.textContent = i+1;
+
+    const openBtn = document.createElement("button");
+    openBtn.type = "button";
+    openBtn.className = "batch-open";
+    openBtn.textContent = "Open";
+    openBtn.onclick = () => openCardFromList(i);
 
     // --- front textarea ---
     const front = document.createElement("textarea");
@@ -591,6 +747,8 @@ function renderBatchList() {
     front.oninput = e => {
       cards[i].front = e.target.value;
       dirty = true;
+      cache[currentSetId] = cloneCards(cards);
+      saveLocalCache();
     };
 
     // --- back textarea ---
@@ -600,6 +758,8 @@ function renderBatchList() {
     back.oninput = e => {
       cards[i].back = e.target.value;
       dirty = true;
+      cache[currentSetId] = cloneCards(cards);
+      saveLocalCache();
     };
 
     // --- level select ---
@@ -614,16 +774,26 @@ function renderBatchList() {
     lv.onchange = e => {
       cards[i].level = Number(e.target.value);
       dirty = true;
+      cache[currentSetId] = cloneCards(cards);
+      saveLocalCache();
+      renderBatchList();
     };
 
     row.appendChild(checkbox);
     row.appendChild(num);
+    row.appendChild(openBtn);
     row.appendChild(front);
     row.appendChild(back);
     row.appendChild(lv);
 
     container.appendChild(row);
   });
+
+  const allVisibleSelected = visibleIndices.length > 0 && visibleIndices.every(i => batchSelected.has(i));
+  if (batchSelectVisibleBtn) {
+    batchSelectVisibleBtn.textContent = allVisibleSelected ? "Clear visible" : "Select visible";
+  }
+  updateBatchActionBar(visibleIndices.length);
 }
 
 // ---------- 保存（GAS へ一括送信） ----------
@@ -638,7 +808,8 @@ async function saveAll() {
 
     if (res && (res.status === "success" || res.status === "ok" || res.status === "done")) {
       dirty = false;
-      cache[currentSetId] = cards.map(c => ({ ...c }));
+      cache[currentSetId] = cloneCards(cards);
+      saveLocalCache();
       // ← 成功時は何も表示しない
     } else {
       throw new Error("unexpected response");
