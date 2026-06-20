@@ -33,6 +33,7 @@
 <!-- 右上アイコン群 -->
     <div id="topControls">
       <button id="batchBtn" class="icon-btn" onclick="openBatchEditor()">List</button>
+      <button id="testBtn" class="icon-btn" onclick="openTestPopup()">Test</button>
       <button id="saveAllBtn" class="save-btn" onclick="saveAll()">Save</button>
     </div>
 
@@ -55,8 +56,8 @@
       <div class="card-inner" id="cardInner">
         <div class="face front">
           <div class="face-top">
-            <button class="icon-small no-flip" onclick="addNewCard()">＋</button>
-            <button class="icon-small no-flip" id="editBtn" title="Edit" onclick="openEditPopup()">🖊</button>                      
+            <button class="icon-small shortcut-btn no-flip" title="New card (N)" onclick="addNewCard()"><span>＋</span><span class="key-hint">N</span></button>
+            <button class="icon-small shortcut-btn no-flip" id="editBtn" title="Edit (E)" onclick="openEditPopup()"><span>🖊</span><span class="key-hint">E</span></button>                      
           </div>
           <div class="face-content" id="front"></div>
           <div class="face-bottom">
@@ -73,7 +74,7 @@
 
         <div class="face back">
           <div class="face-top">
-            <button class="icon-small no-flip" id="editBtnBack" title="Edit" onclick="openEditPopup()">🖊</button>
+            <button class="icon-small shortcut-btn no-flip" id="editBtnBack" title="Edit (E)" onclick="openEditPopup()"><span>🖊</span><span class="key-hint">E</span></button>
           </div>
           <div class="face-content" id="back"></div>
         </div>
@@ -142,6 +143,65 @@
       <button id="batchSelectVisibleBtn" class="rounded hidden" onclick="toggleSelectVisible()">Select visible</button>
       <button id="batchSelectBtn" class="rounded" onclick="toggleBatchSelectMode()">Multi-select</button>
       <button id="batchRunBtn" class="rounded hidden" onclick="runBatchAction()">Apply to selected</button>
+    </div>
+  </div>
+</div>
+
+<!-- 確認テスト -->
+<div id="testPopup" class="modal" style="display:none;">
+  <div class="modal-content test-modal-content">
+    <button class="modal-close" onclick="closeTestPopup()">×</button>
+
+    <div id="testSetup" class="test-view">
+      <h3>確認テスト</h3>
+      <div class="test-field">
+        <span class="test-label">出題レベル</span>
+        <div class="test-levels">
+          <label><input type="checkbox" class="testLevelCheckbox" value="1" checked onchange="updateTestAvailable()" /> Lv1</label>
+          <label><input type="checkbox" class="testLevelCheckbox" value="2" checked onchange="updateTestAvailable()" /> Lv2</label>
+          <label><input type="checkbox" class="testLevelCheckbox" value="3" checked onchange="updateTestAvailable()" /> Lv3</label>
+          <label><input type="checkbox" class="testLevelCheckbox" value="4" checked onchange="updateTestAvailable()" /> Lv4</label>
+          <label><input type="checkbox" class="testLevelCheckbox" value="5" checked onchange="updateTestAvailable()" /> Lv5</label>
+        </div>
+      </div>
+      <label class="test-field">
+        <span class="test-label">問題数</span>
+        <input id="testCount" class="modal-input" type="number" min="1" value="10" oninput="updateTestAvailable()" />
+      </label>
+      <label class="test-check">
+        <input id="testShuffle" type="checkbox" checked />
+        ランダム順
+      </label>
+      <div id="testAvailable" class="test-meta"></div>
+      <div class="modal-actions">
+        <button class="rounded" onclick="closeTestPopup()">Cancel</button>
+        <button class="rounded primary" onclick="startTestSession()">Start</button>
+      </div>
+    </div>
+
+    <div id="testRunner" class="test-view hidden">
+      <div class="test-progress">
+        <span id="testProgressText"></span>
+        <span id="testLevelText"></span>
+      </div>
+      <div id="testFront" class="test-card-face"></div>
+      <div id="testBack" class="test-card-face test-back hidden"></div>
+      <button id="testRevealBtn" class="rounded primary" onclick="revealTestBack()">裏面を見る</button>
+      <div id="testAnswerActions" class="test-answer-actions hidden">
+        <button class="rounded test-good" onclick="recordTestAnswer('known')">わかった</button>
+        <button class="rounded test-ok" onclick="recordTestAnswer('iffy')">微妙</button>
+        <button class="rounded test-bad" onclick="recordTestAnswer('unknown')">わからない</button>
+      </div>
+    </div>
+
+    <div id="testSummary" class="test-view hidden">
+      <h3>テスト終了</h3>
+      <div id="testSummaryStats" class="test-summary-stats"></div>
+      <p class="test-meta">結果をレベルに反映しますか？ わかったカードは1段階下げ、微妙は維持、わからないカードは1段階上げます。</p>
+      <div class="modal-actions">
+        <button class="rounded" onclick="finishTest(false)">反映しない</button>
+        <button class="rounded primary" onclick="finishTest(true)">反映する</button>
+      </div>
     </div>
   </div>
 </div>

@@ -37,6 +37,10 @@ let batchSelectBtn = null;
 let batchRunBtn = null;
 let batchSelectVisibleBtn = null;
 
+let testQueue = [];
+let testPosition = 0;
+let testResults = [];
+
 
 window.addEventListener("DOMContentLoaded", async () => {
   slider  = document.getElementById("cardSlider");
@@ -68,6 +72,17 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "ArrowLeft") {
     e.preventDefault();
     prev();
+  }
+
+  const key = e.key.toLowerCase();
+  if (key === "n") {
+    e.preventDefault();
+    addNewCard();
+  }
+
+  if (key === "e") {
+    e.preventDefault();
+    openEditPopup();
   }
 
 });
@@ -498,6 +513,180 @@ function deleteCurrentCard() {
   applyFiltersAndShow();
 }
 
+// ---------- 確認テスト ----------
+function openTestPopup() {
+  testQueue = [];
+  testPosition = 0;
+  testResults = [];
+  showTestView("testSetup");
+  document.getElementById("testPopup").style.display = "flex";
+  updateTestAvailable();
+}
+
+function closeTestPopup() {
+  document.getElementById("testPopup").style.display = "none";
+}
+
+function showTestView(activeId) {
+  ["testSetup", "testRunner", "testSummary"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle("hidden", id !== activeId);
+  });
+}
+
+function getSelectedTestLevels() {
+  return Array.from(document.querySelectorAll(".testLevelCheckbox"))
+    .filter(cb => cb.checked)
+    .map(cb => Number(cb.value));
+}
+
+function getTestEligibleIndices() {
+  const selected = new Set(getSelectedTestLevels());
+  return cards
+    .map((c, i) => ({ c, i }))
+    .filter(({ c }) => selected.has(Number(c.level || 3)))
+    .map(({ i }) => i);
+}
+
+function updateTestAvailable() {
+  const meta = document.getElementById("testAvailable");
+  if (!meta) return;
+
+  const available = getTestEligibleIndices().length;
+  const requested = getRequestedTestCount(available);
+  meta.textContent = `対象 ${available} 枚 / 出題 ${requested} 枚`;
+}
+
+function getRequestedTestCount(maxCount) {
+  const countEl = document.getElementById("testCount");
+  const raw = countEl ? Number(countEl.value) : 0;
+  if (!Number.isFinite(raw) || raw < 1) return maxCount > 0 ? 1 : 0;
+  return Math.min(Math.floor(raw), maxCount);
+}
+
+function shuffleList(list) {
+  const copy = list.slice();
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function startTestSession() {
+  const eligible = getTestEligibleIndices();
+  if (eligible.length === 0) {
+    alert("選択したレベルにカードがありません。");
+    return;
+  }
+
+  const shouldShuffle = document.getElementById("testShuffle")?.checked;
+  const ordered = shouldShuffle ? shuffleList(eligible) : eligible;
+  const count = getRequestedTestCount(ordered.length);
+
+  testQueue = ordered.slice(0, count);
+  testPosition = 0;
+  testResults = [];
+  showTestView("testRunner");
+  renderTestCard();
+}
+
+function renderTestCard() {
+  const cardIndex = testQueue[testPosition];
+  const card = cards[cardIndex];
+  if (!card) {
+    showTestSummary();
+    return;
+  }
+
+  document.getElementById("testProgressText").textContent = `${testPosition + 1} / ${testQueue.length}`;
+  document.getElementById("testLevelText").textContent = `Lv${card.level || 3}`;
+  document.getElementById("testFront").textContent = card.front;
+  document.getElementById("testBack").textContent = card.back;
+  document.getElementById("testBack").classList.add("hidden");
+  document.getElementById("testRevealBtn").classList.remove("hidden");
+  document.getElementById("testAnswerActions").classList.add("hidden");
+}
+
+function revealTestBack() {
+  document.getElementById("testBack").classList.remove("hidden");
+  document.getElementById("testRevealBtn").classList.add("hidden");
+  document.getElementById("testAnswerActions").classList.remove("hidden");
+}
+
+function recordTestAnswer(result) {
+  const cardIndex = testQueue[testPosition];
+  if (typeof cardIndex !== "number") return;
+
+  testResults.push({
+    cardIndex,
+    result,
+    level: Number(cards[cardIndex]?.level || 3)
+  });
+
+  testPosition += 1;
+  if (testPosition >= testQueue.length) {
+    showTestSummary();
+  } else {
+    renderTestCard();
+  }
+}
+
+function showTestSummary() {
+  const counts = testResults.reduce((acc, item) => {
+    acc[item.result] = (acc[item.result] || 0) + 1;
+    return acc;
+  }, { known: 0, iffy: 0, unknown: 0 });
+
+  const stats = document.getElementById("testSummaryStats");
+  if (stats) {
+    stats.innerHTML = "";
+    [
+      ["わかった", counts.known || 0],
+      ["微妙", counts.iffy || 0],
+      ["わからない", counts.unknown || 0]
+    ].forEach(([label, count]) => {
+      const item = document.createElement("div");
+      item.className = "test-summary-item";
+      item.innerHTML = `<span>${label}</span><strong>${count}</strong>`;
+      stats.appendChild(item);
+    });
+  }
+
+  showTestView("testSummary");
+}
+
+function nextLevelForResult(level, result) {
+  if (result === "known") return Math.max(1, level - 1);
+  if (result === "unknown") return Math.min(5, level + 1);
+  return level;
+}
+
+function finishTest(applyLevels) {
+  if (applyLevels) {
+    let changed = false;
+    testResults.forEach(({ cardIndex, result }) => {
+      const card = cards[cardIndex];
+      if (!card) return;
+      const currentLevel = Number(card.level || 3);
+      const nextLevel = nextLevelForResult(currentLevel, result);
+      if (nextLevel !== currentLevel) {
+        card.level = nextLevel;
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      dirty = true;
+      cache[currentSetId] = cloneCards(cards);
+      saveLocalCache();
+      applyFiltersAndShow();
+    }
+  }
+
+  closeTestPopup();
+}
+
 // ---------- 一括編集（バッチ） ----------
 function openBatchEditor() {
   batchSelectMode = false;
@@ -742,6 +931,11 @@ function renderBatchList() {
     openBtn.onclick = () => openCardFromList(i);
 
     // --- front textarea ---
+    const frontWrap = document.createElement("label");
+    frontWrap.className = "batch-text-wrap";
+    const frontLabel = document.createElement("span");
+    frontLabel.className = "batch-text-label";
+    frontLabel.textContent = "Front";
     const front = document.createElement("textarea");
     front.value = c.front;
     front.className = "batch-text";
@@ -751,8 +945,15 @@ function renderBatchList() {
       cache[currentSetId] = cloneCards(cards);
       saveLocalCache();
     };
+    frontWrap.appendChild(frontLabel);
+    frontWrap.appendChild(front);
 
     // --- back textarea ---
+    const backWrap = document.createElement("label");
+    backWrap.className = "batch-text-wrap";
+    const backLabel = document.createElement("span");
+    backLabel.className = "batch-text-label";
+    backLabel.textContent = "Back";
     const back = document.createElement("textarea");
     back.value = c.back;
     back.className = "batch-text";
@@ -762,6 +963,8 @@ function renderBatchList() {
       cache[currentSetId] = cloneCards(cards);
       saveLocalCache();
     };
+    backWrap.appendChild(backLabel);
+    backWrap.appendChild(back);
 
     // --- level select ---
     const lv = document.createElement("select");
@@ -783,8 +986,8 @@ function renderBatchList() {
     row.appendChild(checkbox);
     row.appendChild(num);
     row.appendChild(openBtn);
-    row.appendChild(front);
-    row.appendChild(back);
+    row.appendChild(frontWrap);
+    row.appendChild(backWrap);
     row.appendChild(lv);
 
     container.appendChild(row);
@@ -881,6 +1084,7 @@ document.addEventListener("click", (e) => {
   // ---- モーダル系 ----
   const modals = [
     { id: "editPopup", close: closeEditPopup },
+    { id: "testPopup", close: closeTestPopup },
     { id: "batchPopup", close: closeBatchEditor },
     { id: "batchModeModal", close: closeBatchModeModal }
   ];
